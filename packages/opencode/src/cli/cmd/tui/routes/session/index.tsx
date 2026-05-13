@@ -78,6 +78,7 @@ import { usePromptRef } from "../../context/prompt"
 import { useExit } from "../../context/exit"
 import { Filesystem } from "@/util/filesystem"
 import { PermissionPrompt } from "./permission"
+import open from "open"
 import { QuestionPrompt } from "./question"
 import { DialogExportOptions } from "../../ui/dialog-export-options"
 import * as Model from "../../util/model"
@@ -467,7 +468,40 @@ export function Session() {
     }
   }
 
+  async function openSessionMap() {
+    const current = session()
+    if (!current) return
+    try {
+      const base = sdk.openExternalServer ? await sdk.openExternalServer() : sdk.url
+      const url = new URL(`/sessionmap/${route.sessionID}`, base)
+      const directory = sdk.directory ?? current.directory
+      if (directory) url.searchParams.set("directory", directory)
+      await open(url.toString())
+      toast.show({
+        message: "Session map opened in browser",
+        variant: "success",
+      })
+    } catch (error) {
+      toast.show({
+        message: errorMessage(error) ?? "Failed to open session map",
+        variant: "error",
+      })
+    }
+    dialog.clear()
+  }
+
   const sessionCommandList = createMemo(() => [
+    {
+      title: "Open session map",
+      value: "session.map",
+      description: "Open an interactive memory graph for this session",
+      category: "Session",
+      slash: {
+        name: "sessionmap",
+        aliases: ["map", "memory"],
+      },
+      run: openSessionMap,
+    },
     {
       title: session()?.share?.url ? "Copy share link" : "Share session",
       value: "session.share",

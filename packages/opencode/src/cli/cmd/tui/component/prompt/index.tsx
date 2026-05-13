@@ -1022,6 +1022,28 @@ export function Prompt(props: PromptProps) {
     }
   }
 
+  function runLocalSlash(inputText: string) {
+    if (!inputText.startsWith("/")) return false
+    const firstLine = inputText.split("\n")[0]?.trim()
+    if (!firstLine) return false
+    const slash = firstLine.split(/\s+/)[0]
+    const match = command
+      .slashes()
+      .find((entry) => entry.display.trim() === slash || entry.aliases?.some((alias) => alias.trim() === slash))
+    if (!match) return false
+
+    match.onSelect()
+    input.extmarks.clear()
+    setStore("prompt", {
+      input: "",
+      parts: [],
+    })
+    setStore("extmarkToPartIndex", new Map())
+    input.clear()
+    props.onSubmit?.()
+    return true
+  }
+
   async function submitInner() {
     setWarpNotice(undefined)
 
@@ -1043,6 +1065,7 @@ export function Prompt(props: PromptProps) {
       void exit()
       return true
     }
+    if (runLocalSlash(trimmed)) return true
     const selectedModel = local.model.current()
     if (!selectedModel) {
       void promptModelWarning()

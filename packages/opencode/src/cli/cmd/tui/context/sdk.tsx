@@ -17,6 +17,7 @@ export const { use: useSDK, provider: SDKProvider } = createSimpleContext({
     fetch?: typeof fetch
     headers?: RequestInit["headers"]
     events?: EventSource
+    openExternalServer?: () => Promise<string>
   }) => {
     const abort = new AbortController()
     let sse: AbortController | undefined
@@ -137,6 +138,7 @@ export const { use: useSDK, provider: SDKProvider } = createSimpleContext({
       event: emitter,
       fetch: props.fetch ?? fetch,
       url: props.url,
+      openExternalServer: props.openExternalServer,
     }
   },
 })

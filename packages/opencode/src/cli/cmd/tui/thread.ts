@@ -46,6 +46,12 @@ function createWorkerFetch(client: RpcClient): typeof fetch {
   return fn as typeof fetch
 }
 
+function browserURL(input: string) {
+  const url = new URL(input)
+  if (url.hostname === "0.0.0.0") url.hostname = "localhost"
+  return url.toString()
+}
+
 function createEventSource(client: RpcClient): EventSource {
   return {
     subscribe: async (handler) => {
@@ -210,6 +216,18 @@ export const TuiThreadCommand = cmd({
             events: createEventSource(client),
           }
 
+      let externalServerURL = external ? browserURL(transport.url) : undefined
+      const openExternalServer = async () => {
+        if (externalServerURL) return externalServerURL
+        const result = await client.call("server", {
+          ...network,
+          hostname: network.hostname === "0.0.0.0" ? "0.0.0.0" : "127.0.0.1",
+          port: 0,
+        })
+        externalServerURL = browserURL(result.url)
+        return externalServerURL
+      }
+
       try {
         await validateSession({
           url: transport.url,
@@ -240,6 +258,7 @@ export const TuiThreadCommand = cmd({
           directory: cwd,
           fetch: transport.fetch,
           events: transport.events,
+          openExternalServer,
           args: {
             continue: args.continue,
             sessionID: args.session,

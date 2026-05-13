@@ -167,6 +167,7 @@ export function tui(input: {
   fetch?: typeof fetch
   headers?: RequestInit["headers"]
   events?: EventSource
+  openExternalServer?: () => Promise<string>
 }) {
   // promise to prevent immediate exit
   // oxlint-disable-next-line no-async-promise-executor -- intentional: async executor used for sequential setup before resolve
@@ -221,6 +222,7 @@ export function tui(input: {
                           fetch={input.fetch}
                           headers={input.headers}
                           events={input.events}
+                          openExternalServer={input.openExternalServer}
                         >
                           <ProjectProvider>
                             <SyncProvider>
