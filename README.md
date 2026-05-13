@@ -10,8 +10,8 @@
 <p align="center">Sally Code, our own open source AI coding agent fork.</p>
 <p align="center">
   <a href="https://opencode.ai/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
-  <a href="https://www.npmjs.com/package/opencode-ai"><img alt="npm" src="https://img.shields.io/npm/v/opencode-ai?style=flat-square" /></a>
-  <a href="https://github.com/anomalyco/opencode/actions/workflows/publish.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/anomalyco/opencode/publish.yml?style=flat-square&branch=dev" /></a>
+  <a href="https://www.npmjs.com/package/sally-code-ai"><img alt="npm" src="https://img.shields.io/npm/v/sally-code-ai?style=flat-square" /></a>
+  <a href="https://github.com/paradox974333/opencode/actions/workflows/release-sally-code-cli.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/paradox974333/opencode/release-sally-code-cli.yml?style=flat-square&branch=dev" /></a>
 </p>
 
 <p align="center">
@@ -46,23 +46,33 @@
 ### Installation
 
 ```bash
-# YOLO
-curl -fsSL https://opencode.ai/install | bash
+# macOS, Linux, WSL, and Git Bash
+curl -fsSL https://github.com/paradox974333/opencode/releases/latest/download/install | bash
+
+# Windows PowerShell
+irm https://github.com/paradox974333/opencode/releases/latest/download/install.ps1 | iex
 
 # Package managers
-npm i -g opencode-ai@latest        # or bun/pnpm/yarn
-scoop install opencode             # Windows
-choco install opencode             # Windows
-brew install anomalyco/tap/opencode # macOS and Linux (recommended, always up to date)
-brew install opencode              # macOS and Linux (official brew formula, updated less)
-sudo pacman -S opencode            # Arch Linux (Stable)
-paru -S opencode-bin               # Arch Linux (Latest from AUR)
-mise use -g opencode               # Any OS
-nix run nixpkgs#opencode           # or github:anomalyco/opencode for latest dev branch
+npm i -g sally-code-ai@latest      # or bun/pnpm/yarn
 ```
 
 > [!TIP]
 > Remove versions older than 0.1.x before installing.
+
+#### Publishing a Release
+
+The installer URL uses GitHub Releases. To make it live for other PCs:
+
+1. Push this repo to GitHub.
+2. Open **Actions** -> **release-sally-code-cli**.
+3. Run the workflow with a version like `1.14.49`.
+
+The workflow uploads the installer scripts and platform archives, then these URLs work:
+
+```bash
+curl -fsSL https://github.com/paradox974333/opencode/releases/latest/download/install | bash
+irm https://github.com/paradox974333/opencode/releases/latest/download/install.ps1 | iex
+```
 
 ### Desktop App (BETA)
 
@@ -86,15 +96,15 @@ scoop bucket add extras; scoop install extras/opencode-desktop
 
 The install script respects the following priority order for the installation path:
 
-1. `$OPENCODE_INSTALL_DIR` - Custom installation directory
+1. `$SALLY_CODE_INSTALL_DIR` - Custom installation directory
 2. `$XDG_BIN_DIR` - XDG Base Directory Specification compliant path
 3. `$HOME/bin` - Standard user binary directory (if it exists or can be created)
-4. `$HOME/.opencode/bin` - Default fallback
+4. `$HOME/.sally-code/bin` - Default fallback
 
 ```bash
 # Examples
-OPENCODE_INSTALL_DIR=/usr/local/bin curl -fsSL https://opencode.ai/install | bash
-XDG_BIN_DIR=$HOME/.local/bin curl -fsSL https://opencode.ai/install | bash
+SALLY_CODE_INSTALL_DIR=/usr/local/bin curl -fsSL https://github.com/paradox974333/opencode/releases/latest/download/install | bash
+XDG_BIN_DIR=$HOME/.local/bin curl -fsSL https://github.com/paradox974333/opencode/releases/latest/download/install | bash
 ```
 
 ### Agents

@@ -47,25 +47,93 @@ function detectPlatformAndArch() {
   return { platform, arch }
 }
 
+function supportsAvx2(platform, arch) {
+  if (arch !== "x64") return false
+
+  if (platform === "linux") {
+    try {
+      return /(^|\s)avx2(\s|$)/i.test(fs.readFileSync("/proc/cpuinfo", "utf8"))
+    } catch {
+      return false
+    }
+  }
+
+  if (platform === "darwin") {
+    try {
+      const result = require("child_process").spawnSync("sysctl", ["-n", "hw.optional.avx2_0"], {
+        encoding: "utf8",
+        timeout: 1500,
+      })
+      return result.status === 0 && (result.stdout || "").trim() === "1"
+    } catch {
+      return false
+    }
+  }
+
+  return false
+}
+
+function isMusl(platform) {
+  if (platform !== "linux") return false
+  try {
+    if (fs.existsSync("/etc/alpine-release")) return true
+  } catch {
+    // ignore
+  }
+  try {
+    const result = require("child_process").spawnSync("ldd", ["--version"], { encoding: "utf8" })
+    return ((result.stdout || "") + (result.stderr || "")).toLowerCase().includes("musl")
+  } catch {
+    return false
+  }
+}
+
+function packageNames(platform, arch) {
+  const base = `sally-code-${platform}-${arch}`
+  const baseline = arch === "x64" && !supportsAvx2(platform, arch)
+  const musl = isMusl(platform)
+
+  if (platform === "linux") {
+    if (musl) {
+      if (arch === "x64") {
+        if (baseline) return [`${base}-baseline-musl`, `${base}-musl`, `${base}-baseline`, base]
+        return [`${base}-musl`, `${base}-baseline-musl`, base, `${base}-baseline`]
+      }
+      return [`${base}-musl`, base]
+    }
+    if (arch === "x64") {
+      if (baseline) return [`${base}-baseline`, base, `${base}-baseline-musl`, `${base}-musl`]
+      return [base, `${base}-baseline`, `${base}-musl`, `${base}-baseline-musl`]
+    }
+    return [base, `${base}-musl`]
+  }
+
+  if (arch === "x64") {
+    if (baseline) return [`${base}-baseline`, base]
+    return [base, `${base}-baseline`]
+  }
+  return [base]
+}
+
 function findBinary() {
   const { platform, arch } = detectPlatformAndArch()
-  const packageName = `opencode-${platform}-${arch}`
-  const binaryName = platform === "windows" ? "opencode.exe" : "opencode"
+  const binaryName = platform === "windows" ? "sallycode.exe" : "sallycode"
 
-  try {
-    // Use require.resolve to find the package
-    const packageJsonPath = require.resolve(`${packageName}/package.json`)
-    const packageDir = path.dirname(packageJsonPath)
-    const binaryPath = path.join(packageDir, "bin", binaryName)
+  for (const packageName of packageNames(platform, arch)) {
+    try {
+      const packageJsonPath = require.resolve(`${packageName}/package.json`)
+      const packageDir = path.dirname(packageJsonPath)
+      const binaryPath = path.join(packageDir, "bin", binaryName)
 
-    if (!fs.existsSync(binaryPath)) {
-      throw new Error(`Binary not found at ${binaryPath}`)
+      if (fs.existsSync(binaryPath)) {
+        return { binaryPath, binaryName }
+      }
+    } catch {
+      // Try the next compatible package.
     }
-
-    return { binaryPath, binaryName }
-  } catch (error) {
-    throw new Error(`Could not find package ${packageName}: ${error.message}`, { cause: error })
   }
+
+  throw new Error(`Could not find a compatible Sally Code binary package for ${platform}/${arch}`)
 }
 
 async function main() {
@@ -80,7 +148,7 @@ async function main() {
     // On non-Windows platforms, just verify the binary package exists
     // Don't replace the wrapper script - it handles binary execution
     const { binaryPath } = findBinary()
-    const target = path.join(__dirname, "bin", ".opencode")
+    const target = path.join(__dirname, "bin", ".sallycode")
     if (fs.existsSync(target)) fs.unlinkSync(target)
     try {
       fs.linkSync(binaryPath, target)

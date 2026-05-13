@@ -16,7 +16,7 @@ import { fileURLToPath } from "url"
 import { Filesystem } from "@/util/filesystem"
 import { useLocal } from "@tui/context/local"
 import { tint, useTheme } from "@tui/context/theme"
-import { EmptyBorder, PanelBorder, SplitBorder } from "@tui/component/border"
+import { PanelBorder } from "@tui/component/border"
 import { Spinner } from "@tui/component/spinner"
 import { useSDK } from "@tui/context/sdk"
 import { useRoute } from "@tui/context/route"
@@ -96,6 +96,10 @@ const money = new Intl.NumberFormat("en-US", {
 })
 
 const DRAFT_RETENTION_MIN_CHARS = 20
+const DEFAULT_PLACEHOLDERS = {
+  normal: ["Fix the failing test", "Review this file for bugs", "Refactor this code path"],
+  shell: ["git status", "bun test", "ls -la"],
+}
 
 function randomIndex(count: number) {
   if (count <= 0) return 0
@@ -162,8 +166,8 @@ export function Prompt(props: PromptProps) {
   const { theme, syntax } = useTheme()
   const kv = useKV()
   const animationsEnabled = createMemo(() => kv.get("animations_enabled", true))
-  const list = createMemo(() => props.placeholders?.normal ?? [])
-  const shell = createMemo(() => props.placeholders?.shell ?? [])
+  const list = createMemo(() => props.placeholders?.normal ?? DEFAULT_PLACEHOLDERS.normal)
+  const shell = createMemo(() => props.placeholders?.shell ?? DEFAULT_PLACEHOLDERS.shell)
   const fileContextEnabled = createMemo(() => kv.get("file_context_enabled", true))
   const [dismissedEditorSelectionKey, setDismissedEditorSelectionKey] = createSignal<string>()
   const editorContext = createMemo(() => {
@@ -206,6 +210,8 @@ export function Prompt(props: PromptProps) {
   const hasRightContent = createMemo(() => Boolean(props.right))
   const defaultWorkspaceID = createMemo(() => props.workspaceID ?? project.workspace.current())
   const homeVariant = createMemo(() => props.variant === "home")
+  const sessionVariant = createMemo(() => Boolean(props.sessionID) && !homeVariant())
+  const dockVariant = createMemo(() => homeVariant() || sessionVariant())
   const [homePulse, setHomePulse] = createSignal(0)
 
   onMount(() => {
@@ -1420,8 +1426,10 @@ export function Prompt(props: PromptProps) {
     const pulse = 0.5 + 0.5 * Math.sin((homePulse() / 80) * Math.PI * 2)
     return tint(theme.borderSubtle, highlight(), 0.36 + pulse * 0.34)
   })
+  const homeSurface = createMemo(() => tint(theme.backgroundPanel, theme.backgroundElement, 0.36))
+  const homeSurfaceRaised = createMemo(() => tint(theme.backgroundPanel, theme.backgroundElement, 0.58))
   const promptBackground = createMemo(() =>
-    homeVariant() ? tint(theme.backgroundElement, theme.backgroundPanel, 0.28) : theme.backgroundElement,
+    homeVariant() ? homeSurfaceRaised() : tint(theme.backgroundPanel, theme.backgroundElement, 0.58),
   )
   const homeModelLabel = createMemo(() => Locale.truncateMiddle(local.model.parsed().model, 28))
   const homeProviderLabel = createMemo(() => Locale.truncate(currentProviderLabel(), 18))
@@ -1442,7 +1450,8 @@ export function Prompt(props: PromptProps) {
       return `Run a command... "${example}"`
     }
     if (!list().length) return undefined
-    return `Ask anything... "${list()[store.placeholder % list().length]}"`
+    const action = homeVariant() ? "Ask Sally Code" : "Message Sally Code"
+    return `${action}... "${list()[store.placeholder % list().length]}"`
   })
 
   const workspaceLabel = createMemo<
@@ -1503,212 +1512,173 @@ export function Prompt(props: PromptProps) {
     <>
       <box ref={(r: BoxRenderable) => (anchor = r)} visible={props.visible !== false}>
         <box
-          border={homeVariant() ? PanelBorder.border : ["left"]}
+          border={dockVariant() ? (["left"] as const) : PanelBorder.border}
           borderColor={homeVariant() ? homeAccent() : borderHighlight()}
           customBorderChars={
-            homeVariant()
-              ? PanelBorder.customBorderChars
-              : {
-                  ...SplitBorder.customBorderChars,
-                  bottomLeft: "╹",
+            dockVariant()
+              ? {
+                  ...PanelBorder.customBorderChars,
+                  vertical: "\u258c",
                 }
+              : PanelBorder.customBorderChars
           }
+          backgroundColor={dockVariant() ? homeSurface() : undefined}
         >
           <box
-            paddingLeft={2}
-            paddingRight={homeVariant() ? 3 : 2}
+            paddingLeft={dockVariant() ? 3 : 2}
+            paddingRight={2}
             paddingTop={1}
-            paddingBottom={homeVariant() ? 1 : 0}
+            paddingBottom={1}
             flexShrink={0}
-            backgroundColor={promptBackground()}
+            backgroundColor={dockVariant() ? homeSurface() : promptBackground()}
             flexGrow={1}
           >
-            <Show when={homeVariant()}>
-              <box flexDirection="row" flexShrink={0} justifyContent="space-between" paddingBottom={1} gap={2}>
-                <box flexDirection="row" gap={1} flexShrink={1}>
-                  <text fg={homeAccent()}>●</text>
-                  <Show when={local.agent.current()} fallback={<text fg={theme.text}>Sally Code</text>}>
-                    {(agent) => (
-                      <box flexDirection="row" gap={1} flexShrink={1}>
-                        <text fg={fadeColor(highlight(), agentMetaAlpha())} wrapMode="none">
-                          {store.mode === "shell" ? "Shell" : Locale.titlecase(agent().name)}
+            <box flexDirection="row" flexShrink={0} justifyContent="space-between" paddingBottom={1} gap={2}>
+              <box flexDirection="row" gap={1} flexShrink={1}>
+                <text fg={homeVariant() ? homeAccent() : borderHighlight()}>{dockVariant() ? "\u25b8" : "\u25cf"}</text>
+                <Show when={local.agent.current()} fallback={<text fg={theme.text}>Sally Code</text>}>
+                  {(agent) => (
+                    <box flexDirection="row" gap={1} flexShrink={1}>
+                      <text fg={fadeColor(highlight(), agentMetaAlpha())} wrapMode="none">
+                        {store.mode === "shell" ? "Shell" : Locale.titlecase(agent().name)}
+                      </text>
+                      <Show when={store.mode === "normal"}>
+                        <text fg={theme.textMuted}>/</text>
+                        <text
+                          flexShrink={1}
+                          fg={fadeColor(leader() ? theme.textMuted : theme.text, modelMetaAlpha())}
+                          wrapMode="none"
+                          truncate
+                        >
+                          {homeModelLabel()}
                         </text>
-                        <Show when={store.mode === "normal"}>
-                          <text fg={theme.textMuted}>/</text>
-                          <text
-                            flexShrink={1}
-                            fg={fadeColor(leader() ? theme.textMuted : theme.text, modelMetaAlpha())}
-                            wrapMode="none"
-                            truncate
-                          >
-                            {homeModelLabel()}
-                          </text>
-                          <text fg={fadeColor(theme.textMuted, modelMetaAlpha())} wrapMode="none" truncate>
-                            {homeProviderLabel()}
-                          </text>
-                          <Show when={showVariant()}>
-                            <text fg={fadeColor(theme.textMuted, variantMetaAlpha())}>·</text>
-                            <text fg={fadeColor(theme.warning, variantMetaAlpha())} wrapMode="none" truncate>
-                              {local.model.variant.current()}
-                            </text>
-                          </Show>
-                        </Show>
-                      </box>
-                    )}
-                  </Show>
-                </box>
-                <box flexDirection="row" gap={1} flexShrink={0}>
-                  <text fg={theme.textMuted}>Sally Code</text>
-                  <text fg={homeAccent()}>{homeActivityLabel()}</text>
-                </box>
-              </box>
-            </Show>
-            <textarea
-              placeholder={placeholderText()}
-              placeholderColor={theme.textMuted}
-              textColor={leader() ? theme.textMuted : theme.text}
-              focusedTextColor={leader() ? theme.textMuted : theme.text}
-              minHeight={1}
-              maxHeight={6}
-              onContentChange={() => {
-                const value = input.plainText
-                setStore("prompt", "input", value)
-                auto()?.onInput(value)
-                syncExtmarksWithPromptParts()
-                setCursorVersion((value) => value + 1)
-              }}
-              onCursorChange={() => setCursorVersion((value) => value + 1)}
-              onKeyDown={(e: { preventDefault(): void }) => {
-                if (props.disabled) {
-                  e.preventDefault()
-                  return
-                }
-              }}
-              onSubmit={() => {
-                // IME: double-defer so the last composed character (e.g. Korean
-                // hangul) is flushed to plainText before we read it for submission.
-                setTimeout(() => setTimeout(() => submit(), 0), 0)
-              }}
-              onPaste={async (event: PasteEvent) => {
-                if (props.disabled) {
-                  event.preventDefault()
-                  return
-                }
-
-                // Normalize line endings at the boundary
-                // Windows ConPTY/Terminal often sends CR-only newlines in bracketed paste
-                // Replace CRLF first, then any remaining CR
-                const normalizedText = decodePasteBytes(event.bytes).replace(/\r\n/g, "\n").replace(/\r/g, "\n")
-                const pastedContent = normalizedText.trim()
-
-                // Windows Terminal <1.25 can surface image-only clipboard as an
-                // empty bracketed paste. Windows Terminal 1.25+ does not.
-                if (!pastedContent) {
-                  keymap.dispatchCommand("prompt.paste")
-                  return
-                }
-
-                // Once we cross an async boundary below, the terminal may perform its
-                // default paste unless we suppress it first and handle insertion ourselves.
-                event.preventDefault()
-
-                await pasteInputText(normalizedText)
-              }}
-              ref={(r: TextareaRenderable) => {
-                input = r
-                setInputTarget(r)
-                if (promptPartTypeId === 0) {
-                  promptPartTypeId = input.extmarks.registerType("prompt-part")
-                }
-                props.ref?.(ref)
-                setTimeout(() => {
-                  // setTimeout is a workaround and needs to be addressed properly
-                  if (!input || input.isDestroyed) return
-                  input.cursorColor = theme.text
-                }, 0)
-              }}
-              onMouseDown={(r: MouseEvent) => r.target?.focus()}
-              focusedBackgroundColor={theme.backgroundElement}
-              cursorColor={props.disabled ? theme.backgroundElement : theme.text}
-              syntaxStyle={syntax()}
-            />
-            <Show when={!homeVariant()}>
-              <box flexDirection="row" flexShrink={0} paddingTop={1} gap={1} justifyContent="space-between">
-                <box flexDirection="row" gap={1}>
-                  <Show when={local.agent.current()} fallback={<box height={1} />}>
-                    {(agent) => (
-                      <>
-                        <text fg={fadeColor(highlight(), agentMetaAlpha())}>
-                          {store.mode === "shell" ? "Shell" : Locale.titlecase(agent().name)}
+                        <text fg={fadeColor(theme.textMuted, modelMetaAlpha())} wrapMode="none" truncate>
+                          {homeProviderLabel()}
                         </text>
-                        <Show when={store.mode === "normal"}>
-                          <box flexDirection="row" gap={1}>
-                            <text fg={fadeColor(theme.textMuted, modelMetaAlpha())}>·</text>
-                            <text
-                              flexShrink={0}
-                              fg={fadeColor(leader() ? theme.textMuted : theme.text, modelMetaAlpha())}
-                            >
-                              {local.model.parsed().model}
-                            </text>
-                            <text fg={fadeColor(theme.textMuted, modelMetaAlpha())}>{currentProviderLabel()}</text>
-                            <Show when={showVariant()}>
-                              <text fg={fadeColor(theme.textMuted, variantMetaAlpha())}>·</text>
-                              <text>
-                                <span style={{ fg: fadeColor(theme.warning, variantMetaAlpha()), bold: true }}>
-                                  {local.model.variant.current()}
-                                </span>
-                              </text>
-                            </Show>
-                          </box>
+                        <Show when={showVariant()}>
+                          <text fg={fadeColor(theme.textMuted, variantMetaAlpha())}>{"\u00b7"}</text>
+                          <text fg={fadeColor(theme.warning, variantMetaAlpha())} wrapMode="none" truncate>
+                            {local.model.variant.current()}
+                          </text>
                         </Show>
-                      </>
-                    )}
-                  </Show>
-                </box>
-                <Show when={hasRightContent()}>
-                  <box flexDirection="row" gap={1} alignItems="center">
-                    {props.right}
-                  </box>
+                      </Show>
+                    </box>
+                  )}
                 </Show>
               </box>
-            </Show>
+              <box flexDirection="row" gap={1} flexShrink={0}>
+                <Switch>
+                  <Match when={homeVariant()}>
+                    <text fg={theme.textMuted}>composer</text>
+                    <text fg={homeAccent()}>{homeActivityLabel()}</text>
+                  </Match>
+                  <Match when={hasRightContent()}>
+                    <box flexDirection="row" gap={1} alignItems="center">
+                      {props.right}
+                    </box>
+                    <text fg={homeAccent()}>{homeActivityLabel()}</text>
+                  </Match>
+                  <Match when={true}>
+                    <text fg={homeAccent()}>{homeActivityLabel()}</text>
+                  </Match>
+                </Switch>
+              </box>
+            </box>
+            <box
+              flexDirection="row"
+              gap={1}
+              paddingLeft={dockVariant() ? 1 : 0}
+              paddingRight={dockVariant() ? 1 : 0}
+              paddingTop={dockVariant() ? 1 : 0}
+              paddingBottom={dockVariant() ? 1 : 0}
+              backgroundColor={dockVariant() ? promptBackground() : undefined}
+            >
+              <Show when={dockVariant()}>
+                <box flexShrink={0} paddingRight={1}>
+                  <text fg={homeVariant() ? homeAccent() : borderHighlight()}>
+                    {store.mode === "shell" ? "$" : ">"}
+                  </text>
+                </box>
+              </Show>
+              <textarea
+                placeholder={placeholderText()}
+                placeholderColor={theme.textMuted}
+                textColor={leader() ? theme.textMuted : theme.text}
+                focusedTextColor={leader() ? theme.textMuted : theme.text}
+                minHeight={1}
+                maxHeight={6}
+                onContentChange={() => {
+                  const value = input.plainText
+                  setStore("prompt", "input", value)
+                  auto()?.onInput(value)
+                  syncExtmarksWithPromptParts()
+                  setCursorVersion((value) => value + 1)
+                }}
+                onCursorChange={() => setCursorVersion((value) => value + 1)}
+                onKeyDown={(e: { preventDefault(): void }) => {
+                  if (props.disabled) {
+                    e.preventDefault()
+                    return
+                  }
+                }}
+                onSubmit={() => {
+                  // IME: double-defer so the last composed character (e.g. Korean
+                  // hangul) is flushed to plainText before we read it for submission.
+                  setTimeout(() => setTimeout(() => submit(), 0), 0)
+                }}
+                onPaste={async (event: PasteEvent) => {
+                  if (props.disabled) {
+                    event.preventDefault()
+                    return
+                  }
+
+                  // Normalize line endings at the boundary
+                  // Windows ConPTY/Terminal often sends CR-only newlines in bracketed paste
+                  // Replace CRLF first, then any remaining CR
+                  const normalizedText = decodePasteBytes(event.bytes).replace(/\r\n/g, "\n").replace(/\r/g, "\n")
+                  const pastedContent = normalizedText.trim()
+
+                  // Windows Terminal <1.25 can surface image-only clipboard as an
+                  // empty bracketed paste. Windows Terminal 1.25+ does not.
+                  if (!pastedContent) {
+                    keymap.dispatchCommand("prompt.paste")
+                    return
+                  }
+
+                  // Once we cross an async boundary below, the terminal may perform its
+                  // default paste unless we suppress it first and handle insertion ourselves.
+                  event.preventDefault()
+
+                  await pasteInputText(normalizedText)
+                }}
+                ref={(r: TextareaRenderable) => {
+                  input = r
+                  setInputTarget(r)
+                  if (promptPartTypeId === 0) {
+                    promptPartTypeId = input.extmarks.registerType("prompt-part")
+                  }
+                  props.ref?.(ref)
+                  setTimeout(() => {
+                    // setTimeout is a workaround and needs to be addressed properly
+                    if (!input || input.isDestroyed) return
+                    input.cursorColor = theme.text
+                  }, 0)
+                }}
+                onMouseDown={(r: MouseEvent) => r.target?.focus()}
+                focusedBackgroundColor={promptBackground()}
+                cursorColor={props.disabled ? theme.backgroundElement : theme.text}
+                syntaxStyle={syntax()}
+              />
+            </box>
           </box>
         </box>
-        <Show when={!homeVariant()}>
-          <box
-            height={1}
-            border={["left"]}
-            borderColor={borderHighlight()}
-            customBorderChars={{
-              ...EmptyBorder,
-              vertical: theme.backgroundElement.a !== 0 ? "╹" : " ",
-            }}
-          >
-            <box
-              height={1}
-              border={["bottom"]}
-              borderColor={theme.backgroundElement}
-              customBorderChars={
-                theme.backgroundElement.a !== 0
-                  ? {
-                      ...EmptyBorder,
-                      horizontal: "▀",
-                    }
-                  : {
-                      ...EmptyBorder,
-                      horizontal: " ",
-                    }
-              }
-            />
-          </box>
-        </Show>
         <box
           width="100%"
           flexDirection="row"
           justifyContent="space-between"
-          paddingTop={homeVariant() ? 1 : 0}
-          paddingLeft={homeVariant() ? 1 : 0}
-          paddingRight={homeVariant() ? 1 : 0}
+          paddingTop={dockVariant() ? 1 : 0}
+          paddingLeft={dockVariant() ? 1 : 0}
+          paddingRight={dockVariant() ? 1 : 0}
         >
           <Switch>
             <Match when={status().type !== "idle"}>
@@ -1829,7 +1799,7 @@ export function Prompt(props: PromptProps) {
             <Match when={true}>{props.hint ?? <text />}</Match>
           </Switch>
           <Show when={status().type !== "retry"}>
-            <box gap={homeVariant() ? 3 : 2} flexDirection="row">
+            <box gap={dockVariant() ? 3 : 2} flexDirection="row">
               <Show when={editorContextLabelState() !== "none" ? editorFileLabelDisplay() : undefined}>
                 {(file) => (
                   <text fg={editorContextLabelState() === "pending" ? theme.secondary : theme.textMuted}>{file()}</text>
@@ -1846,12 +1816,12 @@ export function Prompt(props: PromptProps) {
                       )}
                     </Match>
                     <Match when={true}>
-                      <text fg={homeVariant() ? homeAccent() : theme.text}>
+                      <text fg={dockVariant() ? borderHighlight() : theme.text}>
                         {agentShortcut()} <span style={{ fg: theme.textMuted }}>agents</span>
                       </text>
                     </Match>
                   </Switch>
-                  <text fg={homeVariant() ? homeAccent() : theme.text}>
+                  <text fg={dockVariant() ? borderHighlight() : theme.text}>
                     {paletteShortcut()} <span style={{ fg: theme.textMuted }}>commands</span>
                   </text>
                 </Match>

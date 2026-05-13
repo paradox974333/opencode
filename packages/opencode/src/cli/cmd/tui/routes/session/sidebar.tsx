@@ -1,13 +1,14 @@
 import { useProject } from "@tui/context/project"
 import { useSync } from "@tui/context/sync"
 import { createMemo, Show } from "solid-js"
-import { useTheme } from "../../context/theme"
+import { tint, useTheme } from "../../context/theme"
 import { useTuiConfig } from "../../context/tui-config"
 import { InstallationChannel, InstallationVersion } from "@opencode-ai/core/installation/version"
 import { TuiPluginRuntime } from "@/cli/cmd/tui/plugin/runtime"
 
 import { getScrollAcceleration } from "../../util/scroll"
 import { WorkspaceLabel } from "../../component/workspace-label"
+import { SplitBorder } from "../../component/border"
 
 export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
   const project = useProject()
@@ -25,8 +26,11 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
   return (
     <Show when={session()}>
       <box
-        backgroundColor={theme.backgroundPanel}
-        width={42}
+        border={["left"]}
+        customBorderChars={SplitBorder.customBorderChars}
+        borderColor={theme.borderSubtle}
+        backgroundColor={tint(theme.backgroundPanel, theme.backgroundElement, 0.28)}
+        width={40}
         height="100%"
         paddingTop={1}
         paddingBottom={1}
@@ -52,7 +56,14 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
               title={session()!.title}
               share_url={session()!.share?.url}
             >
-              <box paddingRight={1}>
+              <box
+                paddingTop={1}
+                paddingBottom={1}
+                paddingLeft={1}
+                paddingRight={1}
+                backgroundColor={tint(theme.backgroundPanel, theme.backgroundElement, 0.42)}
+                gap={1}
+              >
                 <text fg={theme.text}>
                   <b>{session()!.title}</b>
                 </text>

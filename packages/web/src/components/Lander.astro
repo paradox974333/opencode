@@ -30,8 +30,9 @@ const docsGithubHref = getRelativeLocaleUrl(locale, "github")
 
 const command = "curl -fsSL"
 const protocol = "https://"
-const url = "opencode.ai/install"
+const url = "github.com/paradox974333/opencode/releases/latest/download/install"
 const bash = "| bash"
+const psCommand = "irm https://github.com/paradox974333/opencode/releases/latest/download/install.ps1 | iex"
 
 let darkImage: ImageMetadata | undefined;
 let lightImage: ImageMetadata | undefined;
@@ -94,9 +95,9 @@ if (image) {
     <section class="alternatives">
       <div class="col1">
         <h3>npm</h3>
-        <button class="command" data-command="npm install -g opencode-ai">
+        <button class="command" data-command="npm install -g sally-code-ai">
           <code>
-            <span>npm install -g</span> <span class="highlight">opencode-ai</span>
+            <span>npm install -g</span> <span class="highlight">sally-code-ai</span>
           </code>
           <span class="copy">
             <CopyIcon />
@@ -106,9 +107,9 @@ if (image) {
       </div>
       <div class="col2">
         <h3>Bun</h3>
-        <button class="command" data-command="bun install -g opencode-ai">
+        <button class="command" data-command="bun install -g sally-code-ai">
           <code>
-            <span>bun install -g</span> <span class="highlight">opencode-ai</span>
+            <span>bun install -g</span> <span class="highlight">sally-code-ai</span>
           </code>
           <span class="copy">
             <CopyIcon />
@@ -117,10 +118,10 @@ if (image) {
         </button>
       </div>
       <div class="col3">
-        <h3>Homebrew</h3>
-        <button class="command" data-command="brew install opencode">
+        <h3>PowerShell</h3>
+        <button class="command" data-command={psCommand}>
           <code>
-            <span>brew install</span> <span class="highlight">opencode</span>
+            <span>irm</span> <span class="highlight">install.ps1</span> <span>| iex</span>
           </code>
           <span class="copy">
             <CopyIcon />
@@ -129,10 +130,10 @@ if (image) {
         </button>
       </div>
       <div class="col4">
-        <h3>Paru</h3>
-        <button class="command" data-command="paru -S opencode-bin">
+        <h3>Run</h3>
+        <button class="command" data-command="sallycode">
           <code>
-            <span>paru -S</span> <span class="highlight">opencode-bin</span>
+            <span class="highlight">sallycode</span>
           </code>
           <span class="copy">
             <CopyIcon />
@@ -141,10 +142,10 @@ if (image) {
         </button>
       </div>
       <div class="col4">
-        <h3>Mise</h3>
-        <button class="command" data-command="mise use -g github:anomalyco/opencode">
+        <h3>Version</h3>
+        <button class="command" data-command="sallycode --version">
           <code>
-            <span>mise use -g</span> <span class="highlight">github:anomalyco/opencode</span>
+            <span>sallycode</span> <span class="highlight">--version</span>
           </code>
           <span class="copy">
             <CopyIcon />

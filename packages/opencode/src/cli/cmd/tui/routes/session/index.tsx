@@ -22,7 +22,7 @@ import { useSync } from "@tui/context/sync"
 import { useEvent } from "@tui/context/event"
 import { SplitBorder } from "@tui/component/border"
 import { Spinner } from "@tui/component/spinner"
-import { selectedForeground, useTheme } from "@tui/context/theme"
+import { selectedForeground, tint, useTheme } from "@tui/context/theme"
 import { BoxRenderable, ScrollBoxRenderable, addDefaultParsers, TextAttributes, RGBA } from "@opentui/core"
 import { Prompt, type PromptRef } from "@tui/component/prompt"
 import type {
@@ -1124,7 +1124,15 @@ export function Session() {
         }}
       >
         <box flexDirection="row" flexGrow={1} minHeight={0}>
-          <box flexGrow={1} minHeight={0} paddingBottom={1} paddingLeft={2} paddingRight={2} gap={1}>
+          <box
+            flexGrow={1}
+            minHeight={0}
+            paddingBottom={1}
+            paddingLeft={2}
+            paddingRight={2}
+            gap={1}
+            backgroundColor={tint(theme.background, theme.backgroundPanel, 0.28)}
+          >
             <Show when={session()}>
               <scrollbox
                 ref={(r) => (scroll = r)}
@@ -1340,19 +1348,19 @@ function UserMessage(props: {
   const color = createMemo(() => local.agent.color(props.message.agent))
   const queuedFg = createMemo(() => selectedForeground(theme, color()))
   const metadataVisible = createMemo(() => queued() || ctx.showTimestamps())
+  const maxWidth = createMemo(() => Math.max(32, Math.min(108, ctx.width - 2)))
+  const bubbleBg = createMemo(() =>
+    hover()
+      ? tint(theme.backgroundElement, color(), 0.06)
+      : tint(theme.backgroundPanel, color(), queued() ? 0.1 : 0.045),
+  )
 
   const compaction = createMemo(() => props.parts.find((x) => x.type === "compaction"))
 
   return (
     <>
       <Show when={text()}>
-        <box
-          id={props.message.id}
-          border={["left"]}
-          borderColor={color()}
-          customBorderChars={SplitBorder.customBorderChars}
-          marginTop={props.index === 0 ? 0 : 1}
-        >
+        <box id={props.message.id} width="100%" marginTop={props.index === 0 ? 0 : 1} flexShrink={0}>
           <box
             onMouseOver={() => {
               setHover(true)
@@ -1361,48 +1369,62 @@ function UserMessage(props: {
               setHover(false)
             }}
             onMouseUp={props.onMouseUp}
-            paddingTop={1}
-            paddingBottom={1}
-            paddingLeft={2}
-            backgroundColor={hover() ? theme.backgroundElement : theme.backgroundPanel}
+            border={["left"]}
+            borderColor={color()}
+            customBorderChars={SplitBorder.customBorderChars}
             flexShrink={0}
+            maxWidth={maxWidth()}
           >
-            <text fg={theme.text}>{text()}</text>
-            <Show when={files().length}>
-              <box flexDirection="row" paddingBottom={metadataVisible() ? 1 : 0} paddingTop={1} gap={1} flexWrap="wrap">
-                <For each={files()}>
-                  {(file) => {
-                    const bg = createMemo(() => {
-                      if (file.mime.startsWith("image/")) return theme.accent
-                      if (file.mime === "application/pdf") return theme.primary
-                      return theme.secondary
-                    })
-                    return (
-                      <text fg={theme.text}>
-                        <span style={{ bg: bg(), fg: theme.background }}> {MIME_BADGE[file.mime] ?? file.mime} </span>
-                        <span style={{ bg: theme.backgroundElement, fg: theme.textMuted }}> {file.filename} </span>
+            <box paddingTop={1} paddingBottom={1} paddingLeft={2} paddingRight={2} backgroundColor={bubbleBg()} gap={1}>
+              <box flexDirection="row" justifyContent="space-between" gap={2}>
+                <box flexDirection="row" gap={1} flexShrink={1}>
+                  <text fg={color()}>
+                    <b>You</b>
+                  </text>
+                  <text fg={theme.textMuted}>prompt</text>
+                </box>
+                <Show
+                  when={queued()}
+                  fallback={
+                    <Show when={ctx.showTimestamps()}>
+                      <text fg={theme.textMuted} wrapMode="none">
+                        {Locale.todayTimeOrDateTime(props.message.time.created)}
                       </text>
-                    )
-                  }}
-                </For>
-              </box>
-            </Show>
-            <Show
-              when={queued()}
-              fallback={
-                <Show when={ctx.showTimestamps()}>
-                  <text fg={theme.textMuted}>
-                    <span style={{ fg: theme.textMuted }}>
-                      {Locale.todayTimeOrDateTime(props.message.time.created)}
-                    </span>
+                    </Show>
+                  }
+                >
+                  <text fg={theme.textMuted} wrapMode="none">
+                    <span style={{ bg: color(), fg: queuedFg(), bold: true }}> QUEUED </span>
                   </text>
                 </Show>
-              }
-            >
-              <text fg={theme.textMuted}>
-                <span style={{ bg: color(), fg: queuedFg(), bold: true }}> QUEUED </span>
-              </text>
-            </Show>
+              </box>
+              <text fg={theme.text}>{text()}</text>
+              <Show when={files().length}>
+                <box
+                  flexDirection="row"
+                  paddingBottom={metadataVisible() ? 1 : 0}
+                  paddingTop={1}
+                  gap={1}
+                  flexWrap="wrap"
+                >
+                  <For each={files()}>
+                    {(file) => {
+                      const bg = createMemo(() => {
+                        if (file.mime.startsWith("image/")) return theme.accent
+                        if (file.mime === "application/pdf") return theme.primary
+                        return theme.secondary
+                      })
+                      return (
+                        <text fg={theme.text}>
+                          <span style={{ bg: bg(), fg: theme.background }}> {MIME_BADGE[file.mime] ?? file.mime} </span>
+                          <span style={{ bg: theme.backgroundElement, fg: theme.textMuted }}> {file.filename} </span>
+                        </text>
+                      )
+                    }}
+                  </For>
+                </box>
+              </Show>
+            </box>
           </box>
         </box>
       </Show>
@@ -1426,6 +1448,8 @@ function AssistantMessage(props: { message: AssistantMessage; parts: Part[]; las
   const sync = useSync()
   const messages = createMemo(() => sync.data.message[props.message.sessionID] ?? [])
   const model = createMemo(() => Model.name(ctx.providers(), props.message.providerID, props.message.modelID))
+  const accent = createMemo(() => local.agent.color(props.message.agent))
+  const maxWidth = createMemo(() => Math.max(32, Math.min(108, ctx.width - 2)))
 
   const final = createMemo(() => {
     return props.message.finish && !["tool-calls", "unknown"].includes(props.message.finish)
@@ -1441,6 +1465,7 @@ function AssistantMessage(props: { message: AssistantMessage; parts: Part[]; las
   })
 
   const childShortcut = useCommandShortcut("session.child.first")
+  const metaBg = createMemo(() => tint(theme.backgroundPanel, accent(), working() ? 0.09 : 0.045))
 
   return (
     <>
@@ -1460,7 +1485,7 @@ function AssistantMessage(props: { message: AssistantMessage; parts: Part[]; las
         }}
       </For>
       <Show when={props.parts.some((x) => x.type === "tool" && x.tool === "task")}>
-        <box paddingTop={1} paddingLeft={3}>
+        <box paddingTop={1} paddingLeft={2}>
           <text fg={theme.text}>
             {childShortcut()}
             <span style={{ fg: theme.textMuted }}> view subagents</span>
@@ -1474,42 +1499,60 @@ function AssistantMessage(props: { message: AssistantMessage; parts: Part[]; las
           paddingBottom={1}
           paddingLeft={2}
           marginTop={1}
-          backgroundColor={theme.backgroundPanel}
+          backgroundColor={tint(theme.backgroundPanel, theme.error, 0.06)}
           customBorderChars={SplitBorder.customBorderChars}
           borderColor={theme.error}
+          maxWidth={maxWidth()}
         >
           <text fg={theme.textMuted}>{props.message.error?.data.message}</text>
         </box>
       </Show>
       <Switch>
         <Match when={props.last || final() || props.message.error?.name === "MessageAbortedError"}>
-          <box paddingLeft={3} marginTop={1} flexDirection="row" gap={1} alignItems="center">
-            <Show
-              when={working()}
-              fallback={
-                <text
-                  fg={
-                    props.message.error?.name === "MessageAbortedError"
-                      ? theme.textMuted
-                      : local.agent.color(props.message.agent)
-                  }
-                >
-                  {"\u25a3"}
-                </text>
-              }
+          <box
+            border={["left"]}
+            borderColor={working() ? accent() : theme.borderSubtle}
+            customBorderChars={SplitBorder.customBorderChars}
+            marginTop={1}
+            maxWidth={maxWidth()}
+          >
+            <box
+              paddingLeft={2}
+              paddingRight={2}
+              paddingTop={1}
+              paddingBottom={1}
+              flexDirection="row"
+              gap={1}
+              alignItems="center"
+              backgroundColor={metaBg()}
             >
-              <ThinkingDotLoader playing={true} color={local.agent.color(props.message.agent)} />
-            </Show>
-            <text>
-              <span style={{ fg: theme.text }}>{Locale.titlecase(props.message.mode)}</span>
-              <span style={{ fg: theme.textMuted }}> · {model()}</span>
-              <Show when={duration()}>
-                <span style={{ fg: theme.textMuted }}> · {Locale.duration(duration())}</span>
+              <Show
+                when={working()}
+                fallback={
+                  <text
+                    fg={
+                      props.message.error?.name === "MessageAbortedError"
+                        ? theme.textMuted
+                        : local.agent.color(props.message.agent)
+                    }
+                  >
+                    {"\u25a3"}
+                  </text>
+                }
+              >
+                <ThinkingDotLoader playing={true} color={accent()} />
               </Show>
-              <Show when={props.message.error?.name === "MessageAbortedError"}>
-                <span style={{ fg: theme.textMuted }}> · interrupted</span>
-              </Show>
-            </text>
+              <text>
+                <span style={{ fg: theme.text }}>{Locale.titlecase(props.message.mode)}</span>
+                <span style={{ fg: theme.textMuted }}> · {model()}</span>
+                <Show when={duration()}>
+                  <span style={{ fg: theme.textMuted }}> · {Locale.duration(duration())}</span>
+                </Show>
+                <Show when={props.message.error?.name === "MessageAbortedError"}>
+                  <span style={{ fg: theme.textMuted }}> · interrupted</span>
+                </Show>
+              </text>
+            </box>
           </box>
         </Match>
       </Switch>
@@ -1566,6 +1609,7 @@ function ThinkingDotLoader(props: { playing: boolean; color?: RGBA }) {
 function ReasoningPart(props: { last: boolean; part: ReasoningPart; message: AssistantMessage }) {
   const { theme, subtleSyntax } = useTheme()
   const ctx = use()
+  const maxWidth = createMemo(() => Math.max(32, Math.min(108, ctx.width - 2)))
   const content = createMemo(() => {
     // Filter out redacted reasoning chunks from OpenRouter
     // OpenRouter sends encrypted reasoning data that appears as [REDACTED]
@@ -1576,18 +1620,28 @@ function ReasoningPart(props: { last: boolean; part: ReasoningPart; message: Ass
       <box
         id={"text-" + props.part.id}
         paddingLeft={2}
+        paddingRight={2}
+        paddingTop={1}
+        paddingBottom={1}
         marginTop={1}
         flexDirection="column"
         border={["left"]}
         customBorderChars={SplitBorder.customBorderChars}
-        borderColor={theme.backgroundElement}
+        borderColor={tint(theme.borderSubtle, theme.warning, 0.16)}
+        backgroundColor={tint(theme.backgroundPanel, theme.backgroundElement, 0.28)}
+        maxWidth={maxWidth()}
+        gap={1}
       >
+        <box flexDirection="row" gap={1}>
+          <text fg={theme.warning}>Thinking</text>
+          <text fg={theme.textMuted}>reasoning</text>
+        </box>
         <code
           filetype="markdown"
           drawUnstyledText={false}
           streaming={true}
           syntaxStyle={subtleSyntax()}
-          content={"_Thinking:_ " + content()}
+          content={content()}
           conceal={ctx.conceal()}
           fg={theme.textMuted}
         />
@@ -1598,10 +1652,33 @@ function ReasoningPart(props: { last: boolean; part: ReasoningPart; message: Ass
 
 function TextPart(props: { last: boolean; part: TextPart; message: AssistantMessage }) {
   const ctx = use()
+  const local = useLocal()
   const { theme, syntax } = useTheme()
+  const accent = createMemo(() => local.agent.color(props.message.agent))
+  const maxWidth = createMemo(() => Math.max(32, Math.min(108, ctx.width - 2)))
+  const background = createMemo(() => tint(theme.backgroundPanel, accent(), 0.035))
   return (
     <Show when={props.part.text.trim()}>
-      <box id={"text-" + props.part.id} paddingLeft={3} marginTop={1} flexShrink={0}>
+      <box
+        id={"text-" + props.part.id}
+        border={["left"]}
+        customBorderChars={SplitBorder.customBorderChars}
+        borderColor={accent()}
+        paddingLeft={2}
+        paddingRight={2}
+        paddingTop={1}
+        paddingBottom={1}
+        marginTop={1}
+        flexShrink={0}
+        backgroundColor={background()}
+        maxWidth={maxWidth()}
+      >
+        <box flexDirection="row" gap={1} paddingBottom={1}>
+          <text fg={accent()}>
+            <b>{Locale.titlecase(props.message.agent)}</b>
+          </text>
+          <text fg={theme.textMuted}>response</text>
+        </box>
         <Switch>
           <Match when={Flag.OPENCODE_EXPERIMENTAL_MARKDOWN}>
             <markdown
@@ -1862,9 +1939,11 @@ function BlockTool(props: {
   spinner?: boolean
 }) {
   const { theme } = useTheme()
+  const ctx = use()
   const renderer = useRenderer()
   const [hover, setHover] = createSignal(false)
   const error = createMemo(() => (props.part?.state.status === "error" ? props.part.state.error : undefined))
+  const maxWidth = createMemo(() => Math.max(32, Math.min(108, ctx.width - 2)))
   return (
     <box
       border={["left"]}
@@ -1873,9 +1952,10 @@ function BlockTool(props: {
       paddingLeft={2}
       marginTop={1}
       gap={1}
-      backgroundColor={hover() ? theme.backgroundMenu : theme.backgroundPanel}
+      backgroundColor={hover() ? theme.backgroundMenu : tint(theme.backgroundPanel, theme.backgroundElement, 0.28)}
       customBorderChars={SplitBorder.customBorderChars}
-      borderColor={theme.background}
+      borderColor={theme.borderSubtle}
+      maxWidth={maxWidth()}
       onMouseOver={() => props.onClick && setHover(true)}
       onMouseOut={() => setHover(false)}
       onMouseUp={() => {
