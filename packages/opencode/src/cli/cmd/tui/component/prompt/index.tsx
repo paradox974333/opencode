@@ -16,7 +16,7 @@ import { fileURLToPath } from "url"
 import { Filesystem } from "@/util/filesystem"
 import { useLocal } from "@tui/context/local"
 import { tint, useTheme } from "@tui/context/theme"
-import { EmptyBorder, SplitBorder } from "@tui/component/border"
+import { EmptyBorder, PanelBorder, SplitBorder } from "@tui/component/border"
 import { Spinner } from "@tui/component/spinner"
 import { useSDK } from "@tui/context/sdk"
 import { useRoute } from "@tui/context/route"
@@ -73,6 +73,7 @@ export type PromptProps = {
   hint?: JSX.Element
   right?: JSX.Element
   showPlaceholder?: boolean
+  variant?: "default" | "home"
   placeholders?: {
     normal?: string[]
     shell?: string[]
@@ -204,6 +205,14 @@ export function Prompt(props: PromptProps) {
   const currentProviderLabel = createMemo(() => local.model.parsed().provider)
   const hasRightContent = createMemo(() => Boolean(props.right))
   const defaultWorkspaceID = createMemo(() => props.workspaceID ?? project.workspace.current())
+  const homeVariant = createMemo(() => props.variant === "home")
+  const [homePulse, setHomePulse] = createSignal(0)
+
+  onMount(() => {
+    if (!homeVariant()) return
+    const timer = setInterval(() => setHomePulse((value) => (value + 1) % 80), 70)
+    onCleanup(() => clearInterval(timer))
+  })
 
   function selectWorkspace(selection: WorkspaceSelection | undefined) {
     setWorkspaceSelection(selection)
@@ -1406,6 +1415,24 @@ export function Prompt(props: PromptProps) {
     animationsEnabled,
   )
   const borderHighlight = createMemo(() => tint(theme.border, highlight(), agentMetaAlpha()))
+  const homeAccent = createMemo(() => {
+    if (!animationsEnabled()) return tint(theme.borderSubtle, highlight(), 0.4)
+    const pulse = 0.5 + 0.5 * Math.sin((homePulse() / 80) * Math.PI * 2)
+    return tint(theme.borderSubtle, highlight(), 0.36 + pulse * 0.34)
+  })
+  const promptBackground = createMemo(() =>
+    homeVariant() ? tint(theme.backgroundElement, theme.backgroundPanel, 0.28) : theme.backgroundElement,
+  )
+  const homeModelLabel = createMemo(() => Locale.truncateMiddle(local.model.parsed().model, 28))
+  const homeProviderLabel = createMemo(() => Locale.truncate(currentProviderLabel(), 18))
+  const homeActivityLabel = createMemo(() => {
+    if (props.disabled) return "locked"
+    const current = status()
+    if (current.type === "retry") return "retrying"
+    if (current.type !== "idle") return "thinking"
+    if (store.mode === "shell") return "shell"
+    return "ready"
+  })
 
   const placeholderText = createMemo(() => {
     if (props.showPlaceholder === false) return undefined
@@ -1476,21 +1503,66 @@ export function Prompt(props: PromptProps) {
     <>
       <box ref={(r: BoxRenderable) => (anchor = r)} visible={props.visible !== false}>
         <box
-          border={["left"]}
-          borderColor={borderHighlight()}
-          customBorderChars={{
-            ...SplitBorder.customBorderChars,
-            bottomLeft: "╹",
-          }}
+          border={homeVariant() ? PanelBorder.border : ["left"]}
+          borderColor={homeVariant() ? homeAccent() : borderHighlight()}
+          customBorderChars={
+            homeVariant()
+              ? PanelBorder.customBorderChars
+              : {
+                  ...SplitBorder.customBorderChars,
+                  bottomLeft: "╹",
+                }
+          }
         >
           <box
             paddingLeft={2}
-            paddingRight={2}
+            paddingRight={homeVariant() ? 3 : 2}
             paddingTop={1}
+            paddingBottom={homeVariant() ? 1 : 0}
             flexShrink={0}
-            backgroundColor={theme.backgroundElement}
+            backgroundColor={promptBackground()}
             flexGrow={1}
           >
+            <Show when={homeVariant()}>
+              <box flexDirection="row" flexShrink={0} justifyContent="space-between" paddingBottom={1} gap={2}>
+                <box flexDirection="row" gap={1} flexShrink={1}>
+                  <text fg={homeAccent()}>●</text>
+                  <Show when={local.agent.current()} fallback={<text fg={theme.text}>Sally Code</text>}>
+                    {(agent) => (
+                      <box flexDirection="row" gap={1} flexShrink={1}>
+                        <text fg={fadeColor(highlight(), agentMetaAlpha())} wrapMode="none">
+                          {store.mode === "shell" ? "Shell" : Locale.titlecase(agent().name)}
+                        </text>
+                        <Show when={store.mode === "normal"}>
+                          <text fg={theme.textMuted}>/</text>
+                          <text
+                            flexShrink={1}
+                            fg={fadeColor(leader() ? theme.textMuted : theme.text, modelMetaAlpha())}
+                            wrapMode="none"
+                            truncate
+                          >
+                            {homeModelLabel()}
+                          </text>
+                          <text fg={fadeColor(theme.textMuted, modelMetaAlpha())} wrapMode="none" truncate>
+                            {homeProviderLabel()}
+                          </text>
+                          <Show when={showVariant()}>
+                            <text fg={fadeColor(theme.textMuted, variantMetaAlpha())}>·</text>
+                            <text fg={fadeColor(theme.warning, variantMetaAlpha())} wrapMode="none" truncate>
+                              {local.model.variant.current()}
+                            </text>
+                          </Show>
+                        </Show>
+                      </box>
+                    )}
+                  </Show>
+                </box>
+                <box flexDirection="row" gap={1} flexShrink={0}>
+                  <text fg={theme.textMuted}>Sally Code</text>
+                  <text fg={homeAccent()}>{homeActivityLabel()}</text>
+                </box>
+              </box>
+            </Show>
             <textarea
               placeholder={placeholderText()}
               placeholderColor={theme.textMuted}
@@ -1560,73 +1632,84 @@ export function Prompt(props: PromptProps) {
               cursorColor={props.disabled ? theme.backgroundElement : theme.text}
               syntaxStyle={syntax()}
             />
-            <box flexDirection="row" flexShrink={0} paddingTop={1} gap={1} justifyContent="space-between">
-              <box flexDirection="row" gap={1}>
-                <Show when={local.agent.current()} fallback={<box height={1} />}>
-                  {(agent) => (
-                    <>
-                      <text fg={fadeColor(highlight(), agentMetaAlpha())}>
-                        {store.mode === "shell" ? "Shell" : Locale.titlecase(agent().name)}
-                      </text>
-                      <Show when={store.mode === "normal"}>
-                        <box flexDirection="row" gap={1}>
-                          <text fg={fadeColor(theme.textMuted, modelMetaAlpha())}>·</text>
-                          <text
-                            flexShrink={0}
-                            fg={fadeColor(leader() ? theme.textMuted : theme.text, modelMetaAlpha())}
-                          >
-                            {local.model.parsed().model}
-                          </text>
-                          <text fg={fadeColor(theme.textMuted, modelMetaAlpha())}>{currentProviderLabel()}</text>
-                          <Show when={showVariant()}>
-                            <text fg={fadeColor(theme.textMuted, variantMetaAlpha())}>·</text>
-                            <text>
-                              <span style={{ fg: fadeColor(theme.warning, variantMetaAlpha()), bold: true }}>
-                                {local.model.variant.current()}
-                              </span>
+            <Show when={!homeVariant()}>
+              <box flexDirection="row" flexShrink={0} paddingTop={1} gap={1} justifyContent="space-between">
+                <box flexDirection="row" gap={1}>
+                  <Show when={local.agent.current()} fallback={<box height={1} />}>
+                    {(agent) => (
+                      <>
+                        <text fg={fadeColor(highlight(), agentMetaAlpha())}>
+                          {store.mode === "shell" ? "Shell" : Locale.titlecase(agent().name)}
+                        </text>
+                        <Show when={store.mode === "normal"}>
+                          <box flexDirection="row" gap={1}>
+                            <text fg={fadeColor(theme.textMuted, modelMetaAlpha())}>·</text>
+                            <text
+                              flexShrink={0}
+                              fg={fadeColor(leader() ? theme.textMuted : theme.text, modelMetaAlpha())}
+                            >
+                              {local.model.parsed().model}
                             </text>
-                          </Show>
-                        </box>
-                      </Show>
-                    </>
-                  )}
+                            <text fg={fadeColor(theme.textMuted, modelMetaAlpha())}>{currentProviderLabel()}</text>
+                            <Show when={showVariant()}>
+                              <text fg={fadeColor(theme.textMuted, variantMetaAlpha())}>·</text>
+                              <text>
+                                <span style={{ fg: fadeColor(theme.warning, variantMetaAlpha()), bold: true }}>
+                                  {local.model.variant.current()}
+                                </span>
+                              </text>
+                            </Show>
+                          </box>
+                        </Show>
+                      </>
+                    )}
+                  </Show>
+                </box>
+                <Show when={hasRightContent()}>
+                  <box flexDirection="row" gap={1} alignItems="center">
+                    {props.right}
+                  </box>
                 </Show>
               </box>
-              <Show when={hasRightContent()}>
-                <box flexDirection="row" gap={1} alignItems="center">
-                  {props.right}
-                </box>
-              </Show>
-            </box>
+            </Show>
           </box>
         </box>
-        <box
-          height={1}
-          border={["left"]}
-          borderColor={borderHighlight()}
-          customBorderChars={{
-            ...EmptyBorder,
-            vertical: theme.backgroundElement.a !== 0 ? "╹" : " ",
-          }}
-        >
+        <Show when={!homeVariant()}>
           <box
             height={1}
-            border={["bottom"]}
-            borderColor={theme.backgroundElement}
-            customBorderChars={
-              theme.backgroundElement.a !== 0
-                ? {
-                    ...EmptyBorder,
-                    horizontal: "▀",
-                  }
-                : {
-                    ...EmptyBorder,
-                    horizontal: " ",
-                  }
-            }
-          />
-        </box>
-        <box width="100%" flexDirection="row" justifyContent="space-between">
+            border={["left"]}
+            borderColor={borderHighlight()}
+            customBorderChars={{
+              ...EmptyBorder,
+              vertical: theme.backgroundElement.a !== 0 ? "╹" : " ",
+            }}
+          >
+            <box
+              height={1}
+              border={["bottom"]}
+              borderColor={theme.backgroundElement}
+              customBorderChars={
+                theme.backgroundElement.a !== 0
+                  ? {
+                      ...EmptyBorder,
+                      horizontal: "▀",
+                    }
+                  : {
+                      ...EmptyBorder,
+                      horizontal: " ",
+                    }
+              }
+            />
+          </box>
+        </Show>
+        <box
+          width="100%"
+          flexDirection="row"
+          justifyContent="space-between"
+          paddingTop={homeVariant() ? 1 : 0}
+          paddingLeft={homeVariant() ? 1 : 0}
+          paddingRight={homeVariant() ? 1 : 0}
+        >
           <Switch>
             <Match when={status().type !== "idle"}>
               <box
@@ -1746,7 +1829,7 @@ export function Prompt(props: PromptProps) {
             <Match when={true}>{props.hint ?? <text />}</Match>
           </Switch>
           <Show when={status().type !== "retry"}>
-            <box gap={2} flexDirection="row">
+            <box gap={homeVariant() ? 3 : 2} flexDirection="row">
               <Show when={editorContextLabelState() !== "none" ? editorFileLabelDisplay() : undefined}>
                 {(file) => (
                   <text fg={editorContextLabelState() === "pending" ? theme.secondary : theme.textMuted}>{file()}</text>
@@ -1763,12 +1846,12 @@ export function Prompt(props: PromptProps) {
                       )}
                     </Match>
                     <Match when={true}>
-                      <text fg={theme.text}>
+                      <text fg={homeVariant() ? homeAccent() : theme.text}>
                         {agentShortcut()} <span style={{ fg: theme.textMuted }}>agents</span>
                       </text>
                     </Match>
                   </Switch>
-                  <text fg={theme.text}>
+                  <text fg={homeVariant() ? homeAccent() : theme.text}>
                     {paletteShortcut()} <span style={{ fg: theme.textMuted }}>commands</span>
                   </text>
                 </Match>

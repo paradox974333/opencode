@@ -2,13 +2,6 @@ import { EOL } from "os"
 import { Schema } from "effect"
 import { logo as glyphs } from "./logo"
 
-const wordmark = [
-  `⠀                                ▄     `,
-  `█▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█`,
-  `█  █ █  █ █▀▀▀ █  █ █    █  █ █  █ █▀▀▀`,
-  `▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀`,
-]
-
 export class CancelledError extends Schema.TaggedErrorClass<CancelledError>()("UICancelledError", {}) {}
 
 export const Style = {
@@ -46,9 +39,11 @@ export function empty() {
 }
 
 export function logo(pad?: string) {
+  const rows = glyphs.left.map((row, index) => [row, glyphs.right[index] ?? ""].join(" "))
+
   if (!process.stdout.isTTY && !process.stderr.isTTY) {
     const result = []
-    for (const row of wordmark) {
+    for (const row of rows) {
       if (pad) result.push(pad)
       result.push(row)
       result.push(EOL)
@@ -59,9 +54,9 @@ export function logo(pad?: string) {
   const result: string[] = []
   const reset = "\x1b[0m"
   const left = {
-    fg: "\x1b[90m",
-    shadow: "\x1b[38;5;235m",
-    bg: "\x1b[48;5;235m",
+    fg: reset,
+    shadow: "\x1b[38;5;24m",
+    bg: "\x1b[48;5;24m",
   }
   const right = {
     fg: reset,
@@ -96,8 +91,7 @@ export function logo(pad?: string) {
     if (pad) result.push(pad)
     result.push(draw(row, left.fg, left.shadow, left.bg))
     result.push(gap)
-    const other = glyphs.right[index] ?? ""
-    result.push(draw(other, right.fg, right.shadow, right.bg))
+    result.push(draw(glyphs.right[index] ?? "", right.fg, right.shadow, right.bg))
     result.push(EOL)
   })
   return result.join("").trimEnd()

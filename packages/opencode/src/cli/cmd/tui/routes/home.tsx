@@ -1,6 +1,6 @@
 import { Prompt, type PromptRef } from "@tui/component/prompt"
-import { createEffect, createSignal, onMount } from "solid-js"
-import { Logo } from "../component/logo"
+import { For, createEffect, createMemo, createSignal, onCleanup, onMount } from "solid-js"
+import { HomeLogo } from "../component/logo"
 import { useProject } from "../context/project"
 import { useSync } from "../context/sync"
 import { Toast } from "../ui/toast"
@@ -10,11 +10,39 @@ import { usePromptRef } from "../context/prompt"
 import { useLocal } from "../context/local"
 import { TuiPluginRuntime } from "@/cli/cmd/tui/plugin/runtime"
 import { useEditorContext } from "@tui/context/editor"
+import { tint, useTheme } from "@tui/context/theme"
 
 let once = false
 const placeholder = {
   normal: ["Fix a TODO in the codebase", "What is the tech stack of this project?", "Fix broken tests"],
   shell: ["ls -la", "git status", "pwd"],
+}
+const HOME_WIDTH = 70
+
+function HomePulseBar() {
+  const { theme } = useTheme()
+  const [frame, setFrame] = createSignal(0)
+  const cells = 44
+
+  onMount(() => {
+    const timer = setInterval(() => setFrame((value) => (value + 1) % cells), 80)
+    onCleanup(() => clearInterval(timer))
+  })
+
+  const levels = createMemo(() =>
+    Array.from({ length: cells }, (_, index) => {
+      const distance = Math.min(Math.abs(index - frame()), cells - Math.abs(index - frame()))
+      return Math.max(0, 1 - distance / 7)
+    }),
+  )
+
+  return (
+    <box width="100%" maxWidth={HOME_WIDTH} flexDirection="row" justifyContent="center">
+      <For each={levels()}>
+        {(level) => <text fg={tint(theme.borderSubtle, theme.primary, 0.18 + level * 0.68)}>─</text>}
+      </For>
+    </box>
+  )
 }
 
 export function Home() {
@@ -62,14 +90,17 @@ export function Home() {
     <>
       <box flexGrow={1} alignItems="center" paddingLeft={2} paddingRight={2}>
         <box flexGrow={1} minHeight={0} />
-        <box height={4} minHeight={0} flexShrink={1} />
+        <box height={1} minHeight={0} flexShrink={1} />
         <box flexShrink={0}>
           <TuiPluginRuntime.Slot name="home_logo" mode="replace">
-            <Logo />
+            <HomeLogo />
           </TuiPluginRuntime.Slot>
         </box>
         <box height={1} minHeight={0} flexShrink={1} />
-        <box width="100%" maxWidth={75} zIndex={1000} paddingTop={1} flexShrink={0}>
+        <box flexShrink={0}>
+          <HomePulseBar />
+        </box>
+        <box width="100%" maxWidth={HOME_WIDTH} zIndex={1000} paddingTop={1} flexShrink={0}>
           <TuiPluginRuntime.Slot
             name="home_prompt"
             mode="replace"
@@ -81,6 +112,7 @@ export function Home() {
               workspaceID={project.workspace.current()}
               right={<TuiPluginRuntime.Slot name="home_prompt_right" workspace_id={project.workspace.current()} />}
               placeholders={placeholder}
+              variant="home"
             />
           </TuiPluginRuntime.Slot>
         </box>

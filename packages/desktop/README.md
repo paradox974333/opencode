@@ -1,6 +1,6 @@
-# OpenCode Desktop
+# Sally Code Desktop
 
-The OpenCode Desktop app, built with Electron.
+The Sally Code Desktop app, built with Electron.
 
 ## Development
 

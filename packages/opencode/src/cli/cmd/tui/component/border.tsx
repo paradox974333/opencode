@@ -19,3 +19,21 @@ export const SplitBorder = {
     vertical: "┃",
   },
 }
+
+export const PanelBorder = {
+  border: ["top" as const, "right" as const, "bottom" as const, "left" as const],
+  customBorderChars: {
+    ...EmptyBorder,
+    topLeft: "╭",
+    topRight: "╮",
+    bottomLeft: "╰",
+    bottomRight: "╯",
+    horizontal: "─",
+    vertical: "│",
+    bottomT: "┴",
+    topT: "┬",
+    cross: "┼",
+    leftT: "├",
+    rightT: "┤",
+  },
+}

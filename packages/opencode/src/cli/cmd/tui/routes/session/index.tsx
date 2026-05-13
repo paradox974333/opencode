@@ -7,6 +7,7 @@ import {
   For,
   Match,
   on,
+  onCleanup,
   onMount,
   Show,
   Switch,
@@ -100,6 +101,31 @@ const GO_UPSELL_ACCOUNT_RATE_LIMIT_LAST_SEEN_AT = "go_upsell_account_rate_limit_
 const GO_UPSELL_ACCOUNT_RATE_LIMIT_DONT_SHOW = "go_upsell_account_rate_limit_dont_show"
 const GO_UPSELL_WINDOW = 86_400_000 // 24 hrs
 const GO_UPSELL_PROVIDERS = new Set(["opencode", "opencode-go"])
+const THINKING_DOT_FRAMES = [
+  [14, 7, 0, 8, 6, 13, 20],
+  [14, 7, 13, 20, 16, 27, 21],
+  [14, 20, 27, 21, 34, 24, 28],
+  [27, 21, 34, 28, 41, 32, 35],
+  [34, 28, 41, 35, 48, 40, 42],
+  [34, 28, 41, 35, 48, 42, 46],
+  [34, 28, 41, 35, 48, 42, 38],
+  [34, 28, 41, 35, 48, 30, 21],
+  [34, 28, 41, 48, 21, 22, 14],
+  [34, 28, 41, 21, 14, 16, 27],
+  [34, 28, 21, 14, 10, 20, 27],
+  [28, 21, 14, 4, 13, 20, 27],
+  [28, 21, 14, 12, 6, 13, 20],
+  [28, 21, 14, 6, 13, 20, 11],
+  [28, 21, 14, 6, 13, 20, 10],
+  [14, 6, 13, 20, 9, 7, 21],
+]
+const THINKING_BRAILLE_BASE = 0x2800
+const THINKING_BRAILLE_BITS = [
+  [0x01, 0x08],
+  [0x02, 0x10],
+  [0x04, 0x20],
+  [0x40, 0x80],
+]
 
 function goUpsellKeys(action: SessionRetry.Retryable["action"]) {
   if (!action) return
@@ -1404,6 +1430,7 @@ function AssistantMessage(props: { message: AssistantMessage; parts: Part[]; las
   const final = createMemo(() => {
     return props.message.finish && !["tool-calls", "unknown"].includes(props.message.finish)
   })
+  const working = createMemo(() => props.last && !props.message.time.completed && !props.message.error)
 
   const duration = createMemo(() => {
     if (!final()) return 0
@@ -1456,18 +1483,24 @@ function AssistantMessage(props: { message: AssistantMessage; parts: Part[]; las
       </Show>
       <Switch>
         <Match when={props.last || final() || props.message.error?.name === "MessageAbortedError"}>
-          <box paddingLeft={3}>
-            <text marginTop={1}>
-              <span
-                style={{
-                  fg:
+          <box paddingLeft={3} marginTop={1} flexDirection="row" gap={1} alignItems="center">
+            <Show
+              when={working()}
+              fallback={
+                <text
+                  fg={
                     props.message.error?.name === "MessageAbortedError"
                       ? theme.textMuted
-                      : local.agent.color(props.message.agent),
-                }}
-              >
-                ▣{" "}
-              </span>{" "}
+                      : local.agent.color(props.message.agent)
+                  }
+                >
+                  {"\u25a3"}
+                </text>
+              }
+            >
+              <ThinkingDotLoader playing={true} color={local.agent.color(props.message.agent)} />
+            </Show>
+            <text>
               <span style={{ fg: theme.text }}>{Locale.titlecase(props.message.mode)}</span>
               <span style={{ fg: theme.textMuted }}> · {model()}</span>
               <Show when={duration()}>
@@ -1488,6 +1521,46 @@ const PART_MAPPING = {
   text: TextPart,
   tool: ToolPart,
   reasoning: ReasoningPart,
+}
+
+function thinkingBrailleRows(frame: Set<number>) {
+  return [0, 4].map((rowBase) =>
+    [0, 2, 4, 6]
+      .map((colBase) => {
+        let bits = 0
+        for (let row = 0; row < 4; row++) {
+          for (let col = 0; col < 2; col++) {
+            const sourceRow = rowBase + row
+            const sourceCol = colBase + col
+            if (sourceRow > 6 || sourceCol > 6) continue
+            if (frame.has(sourceRow * 7 + sourceCol)) bits |= THINKING_BRAILLE_BITS[row]?.[col] ?? 0
+          }
+        }
+        return String.fromCharCode(THINKING_BRAILLE_BASE + bits)
+      })
+      .join(""),
+  )
+}
+
+function ThinkingDotLoader(props: { playing: boolean; color?: RGBA }) {
+  const { theme } = useTheme()
+  const kv = useKV()
+  const [frameIndex, setFrameIndex] = createSignal(0)
+  const frame = createMemo(() => new Set(THINKING_DOT_FRAMES[frameIndex() % THINKING_DOT_FRAMES.length] ?? []))
+  const activeColor = createMemo(() => props.color ?? theme.text)
+  const rows = createMemo(() => thinkingBrailleRows(frame()))
+
+  createEffect(() => {
+    if (!props.playing || !kv.get("animations_enabled", true)) return
+    const timer = setInterval(() => setFrameIndex((value) => (value + 1) % THINKING_DOT_FRAMES.length), 120)
+    onCleanup(() => clearInterval(timer))
+  })
+
+  return (
+    <box flexDirection="column" gap={0} flexShrink={0}>
+      <For each={rows()}>{(row) => <text fg={activeColor()}>{row}</text>}</For>
+    </box>
+  )
 }
 
 function ReasoningPart(props: { last: boolean; part: ReasoningPart; message: AssistantMessage }) {
