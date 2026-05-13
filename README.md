@@ -50,7 +50,7 @@
 curl -fsSL https://github.com/paradox974333/opencode/releases/latest/download/install | bash
 
 # Windows PowerShell
-irm https://github.com/paradox974333/opencode/releases/latest/download/install.ps1 | iex
+irm https://raw.githubusercontent.com/paradox974333/opencode/dev/install.ps1 | iex
 
 # Package managers
 npm i -g sally-code-ai@latest      # or bun/pnpm/yarn
@@ -61,17 +61,17 @@ npm i -g sally-code-ai@latest      # or bun/pnpm/yarn
 
 #### Publishing a Release
 
-The installer URL uses GitHub Releases. To make it live for other PCs:
+The installer downloads binaries from GitHub Releases. To make it live for other PCs:
 
 1. Push this repo to GitHub.
 2. Open **Actions** -> **release-sally-code-cli**.
 3. Run the workflow with a version like `1.14.49`.
 
-The workflow uploads the installer scripts and platform archives, then these URLs work:
+The workflow uploads the installer scripts and platform archives. macOS and Linux install from the release asset, while Windows PowerShell reads the installer from the repo as plain text and then downloads the latest release binary:
 
 ```bash
 curl -fsSL https://github.com/paradox974333/opencode/releases/latest/download/install | bash
-irm https://github.com/paradox974333/opencode/releases/latest/download/install.ps1 | iex
+irm https://raw.githubusercontent.com/paradox974333/opencode/dev/install.ps1 | iex
 ```
 
 ### Desktop App (BETA)

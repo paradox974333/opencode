@@ -32,7 +32,7 @@ const command = "curl -fsSL"
 const protocol = "https://"
 const url = "github.com/paradox974333/opencode/releases/latest/download/install"
 const bash = "| bash"
-const psCommand = "irm https://github.com/paradox974333/opencode/releases/latest/download/install.ps1 | iex"
+const psCommand = "irm https://raw.githubusercontent.com/paradox974333/opencode/dev/install.ps1 | iex"
 
 let darkImage: ImageMetadata | undefined;
 let lightImage: ImageMetadata | undefined;
@@ -121,7 +121,7 @@ if (image) {
         <h3>PowerShell</h3>
         <button class="command" data-command={psCommand}>
           <code>
-            <span>irm</span> <span class="highlight">install.ps1</span> <span>| iex</span>
+            <span>irm</span> <span class="highlight">raw.../install.ps1</span> <span>| iex</span>
           </code>
           <span class="copy">
             <CopyIcon />

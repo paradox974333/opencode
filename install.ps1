@@ -53,6 +53,23 @@ function Get-LatestVersion {
   return ($release.tag_name -replace "^v", "")
 }
 
+function Download-File($Url, $OutFile) {
+  Write-Muted "Downloading $Url"
+
+  $curl = Get-Command curl.exe -ErrorAction SilentlyContinue
+  if ($curl) {
+    & $curl.Source --location --fail --retry 3 --retry-delay 2 --connect-timeout 30 --output $OutFile $Url
+    if ($LASTEXITCODE -eq 0) {
+      return
+    }
+
+    Write-Muted "curl.exe download failed; trying PowerShell downloader."
+    Remove-Item -LiteralPath $OutFile -Force -ErrorAction SilentlyContinue
+  }
+
+  Invoke-WebRequest -Uri $Url -OutFile $OutFile -UseBasicParsing
+}
+
 function Add-ToUserPath($InstallDir) {
   $pathParts = ($env:PATH -split ";") | Where-Object { $_ }
   if ($pathParts -contains $InstallDir) {
@@ -107,7 +124,7 @@ else {
 
   try {
     $archive = Join-Path $tmp "$App-$target.zip"
-    Invoke-WebRequest -Uri $url -OutFile $archive -UseBasicParsing
+    Download-File $url $archive
     Expand-Archive -LiteralPath $archive -DestinationPath $tmp -Force
 
     $candidates = @(
