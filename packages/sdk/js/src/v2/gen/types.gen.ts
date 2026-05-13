@@ -1721,6 +1721,21 @@ export type ProviderAuthAuthorization = {
   instructions: string
 }
 
+export type ProviderAuthError1 = {
+  name:
+    | "BadRequest"
+    | "ProviderAuthOauthMissing"
+    | "ProviderAuthOauthCodeMissing"
+    | "ProviderAuthOauthCallbackFailed"
+    | "ProviderAuthValidationFailed"
+  data: {
+    providerID?: string
+    field?: string
+    message?: string
+    kind?: string
+  }
+}
+
 export type TextPartInput = {
   id?: string
   type: "text"
@@ -5155,9 +5170,9 @@ export type ProviderOauthAuthorizeData = {
 
 export type ProviderOauthAuthorizeErrors = {
   /**
-   * Bad request
+   * ProviderAuthError
    */
-  400: BadRequestError
+  400: ProviderAuthError1
 }
 
 export type ProviderOauthAuthorizeError = ProviderOauthAuthorizeErrors[keyof ProviderOauthAuthorizeErrors]
@@ -5191,9 +5206,9 @@ export type ProviderOauthCallbackData = {
 
 export type ProviderOauthCallbackErrors = {
   /**
-   * Bad request
+   * ProviderAuthError
    */
-  400: BadRequestError
+  400: ProviderAuthError1
 }
 
 export type ProviderOauthCallbackError = ProviderOauthCallbackErrors[keyof ProviderOauthCallbackErrors]
@@ -5427,7 +5442,7 @@ export type SessionChildrenErrors = {
    */
   400: BadRequestError
   /**
-   * Not found
+   * NotFoundError
    */
   404: NotFoundError
 }
@@ -5461,7 +5476,7 @@ export type SessionTodoErrors = {
    */
   400: BadRequestError
   /**
-   * Not found
+   * NotFoundError
    */
   404: NotFoundError
 }
@@ -5571,7 +5586,7 @@ export type SessionPromptErrors = {
    */
   400: BadRequestError
   /**
-   * Not found
+   * NotFoundError
    */
   404: NotFoundError
 }
@@ -5609,7 +5624,7 @@ export type SessionDeleteMessageErrors = {
    */
   400: BadRequestError
   /**
-   * Not found
+   * NotFoundError
    */
   404: NotFoundError
 }
@@ -5716,10 +5731,6 @@ export type SessionAbortErrors = {
    * Bad request
    */
   400: BadRequestError
-  /**
-   * Not found
-   */
-  404: NotFoundError
 }
 
 export type SessionAbortError = SessionAbortErrors[keyof SessionAbortErrors]
@@ -5755,7 +5766,7 @@ export type SessionInitErrors = {
    */
   400: BadRequestError
   /**
-   * Not found
+   * NotFoundError
    */
   404: NotFoundError
 }
@@ -5910,7 +5921,7 @@ export type SessionPromptAsyncErrors = {
    */
   400: BadRequestError
   /**
-   * Not found
+   * NotFoundError
    */
   404: NotFoundError
 }
@@ -5959,7 +5970,7 @@ export type SessionCommandErrors = {
    */
   400: BadRequestError
   /**
-   * Not found
+   * NotFoundError
    */
   404: NotFoundError
 }
@@ -6004,7 +6015,7 @@ export type SessionShellErrors = {
    */
   400: BadRequestError
   /**
-   * Not found
+   * NotFoundError
    */
   404: NotFoundError
 }
@@ -6044,7 +6055,7 @@ export type SessionRevertErrors = {
    */
   400: BadRequestError
   /**
-   * Not found
+   * NotFoundError
    */
   404: NotFoundError
 }
@@ -6078,7 +6089,7 @@ export type SessionUnrevertErrors = {
    */
   400: BadRequestError
   /**
-   * Not found
+   * NotFoundError
    */
   404: NotFoundError
 }
@@ -6115,7 +6126,7 @@ export type PermissionRespondErrors = {
    */
   400: BadRequestError
   /**
-   * Not found
+   * NotFoundError
    */
   404: NotFoundError
 }
@@ -6151,7 +6162,7 @@ export type PartDeleteErrors = {
    */
   400: BadRequestError
   /**
-   * Not found
+   * NotFoundError
    */
   404: NotFoundError
 }
@@ -6187,7 +6198,7 @@ export type PartUpdateErrors = {
    */
   400: BadRequestError
   /**
-   * Not found
+   * NotFoundError
    */
   404: NotFoundError
 }
