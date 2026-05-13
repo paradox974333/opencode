@@ -50,7 +50,7 @@
 curl -fsSL https://github.com/paradox974333/opencode/releases/latest/download/install | bash
 
 # Windows PowerShell
-irm https://raw.githubusercontent.com/paradox974333/opencode/dev/install.ps1 | iex
+irm https://raw.githubusercontent.com/paradox974333/opencode/20ad02c929c336497337e581271f26842a94919b/install.ps1 | iex
 
 # Package managers
 npm i -g sally-code-ai@latest      # or bun/pnpm/yarn
@@ -71,7 +71,7 @@ The workflow uploads the installer scripts and platform archives. macOS and Linu
 
 ```bash
 curl -fsSL https://github.com/paradox974333/opencode/releases/latest/download/install | bash
-irm https://raw.githubusercontent.com/paradox974333/opencode/dev/install.ps1 | iex
+irm https://raw.githubusercontent.com/paradox974333/opencode/20ad02c929c336497337e581271f26842a94919b/install.ps1 | iex
 ```
 
 ### Desktop App (BETA)
