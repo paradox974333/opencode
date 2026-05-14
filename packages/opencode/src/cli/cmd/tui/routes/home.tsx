@@ -1,15 +1,16 @@
 import { Prompt, type PromptRef } from "@tui/component/prompt"
-import { TextAttributes, type RGBA } from "@opentui/core"
-import { For, createEffect, createMemo, createSignal, onCleanup, onMount } from "solid-js"
+import { For, createEffect, createMemo, createSignal, onMount } from "solid-js"
 import open from "open"
 import { TuiPluginRuntime } from "@/cli/cmd/tui/plugin/runtime"
 import { errorMessage } from "@/util/error"
 import { useEditorContext } from "@tui/context/editor"
 import { tint, useTheme } from "@tui/context/theme"
 import { PanelBorder } from "../component/border"
+import { HomeLogo } from "../component/logo"
 import { useArgs } from "../context/args"
 import { useLocal } from "../context/local"
 import { useProject } from "../context/project"
+import { useRoute } from "@tui/context/route"
 import { useRouteData } from "@tui/context/route"
 import { usePromptRef } from "../context/prompt"
 import { useSDK } from "../context/sdk"
@@ -44,91 +45,6 @@ const QUICK_STARTS = [
     prompt: "Make this interface more modern, readable, and user friendly.",
   },
 ]
-
-function HomeSignalBar() {
-  const { theme } = useTheme()
-  const [frame, setFrame] = createSignal(0)
-  const cells = 46
-
-  onMount(() => {
-    const timer = setInterval(() => setFrame((value) => (value + 1) % cells), 90)
-    onCleanup(() => clearInterval(timer))
-  })
-
-  const levels = createMemo(() =>
-    Array.from({ length: cells }, (_, index) => {
-      const distance = Math.min(Math.abs(index - frame()), cells - Math.abs(index - frame()))
-      return Math.max(0, 1 - distance / 7)
-    }),
-  )
-
-  return (
-    <box width="100%" flexDirection="row">
-      <For each={levels()}>
-        {(level) => <text fg={tint(theme.borderSubtle, theme.primary, 0.14 + level * 0.62)}>-</text>}
-      </For>
-    </box>
-  )
-}
-
-function HomePill(props: { label: string; value: string; color?: RGBA }) {
-  const { theme } = useTheme()
-  return (
-    <box
-      flexDirection="row"
-      gap={1}
-      border={PanelBorder.border}
-      customBorderChars={PanelBorder.customBorderChars}
-      borderColor={tint(theme.borderSubtle, props.color ?? theme.primary, 0.18)}
-      backgroundColor={tint(theme.backgroundPanel, theme.backgroundElement, 0.34)}
-      paddingLeft={1}
-      paddingRight={1}
-    >
-      <text fg={theme.textMuted}>{props.label}</text>
-      <text fg={props.color ?? theme.text} wrapMode="none" truncate>
-        {props.value}
-      </text>
-    </box>
-  )
-}
-
-function HomeHero(props: { agent: string; model: string; provider: string; workspace: string }) {
-  const { theme } = useTheme()
-  return (
-    <box
-      width="100%"
-      maxWidth={HOME_WIDTH}
-      border={PanelBorder.border}
-      customBorderChars={PanelBorder.customBorderChars}
-      borderColor={tint(theme.borderSubtle, theme.primary, 0.26)}
-      backgroundColor={tint(theme.backgroundPanel, theme.backgroundElement, 0.44)}
-      paddingLeft={2}
-      paddingRight={2}
-      paddingTop={1}
-      paddingBottom={1}
-      gap={1}
-    >
-      <box flexDirection="row" justifyContent="space-between" gap={2}>
-        <box gap={0} flexShrink={1}>
-          <text attributes={TextAttributes.BOLD} fg={theme.text}>
-            SALLY CODE
-          </text>
-          <text fg={theme.textMuted}>Local AI coding workspace</text>
-        </box>
-        <box flexDirection="row" gap={1} flexWrap="wrap" justifyContent="flex-end">
-          <HomePill label="agent" value={props.agent} color={theme.primary} />
-          <HomePill label="web" value="ready" color={theme.success} />
-        </box>
-      </box>
-      <HomeSignalBar />
-      <box flexDirection="row" gap={1} flexWrap="wrap">
-        <HomePill label="model" value={props.model} />
-        <HomePill label="provider" value={props.provider} />
-        <HomePill label="workspace" value={props.workspace} color={theme.info} />
-      </box>
-    </box>
-  )
-}
 
 function QuickStart(props: { label: string; prompt: string; onPick: (prompt: string) => void }) {
   const { theme } = useTheme()
@@ -220,6 +136,7 @@ export function Home() {
   const sync = useSync()
   const project = useProject()
   const route = useRouteData("home")
+  const router = useRoute()
   const promptRef = usePromptRef()
   const [ref, setRef] = createSignal<PromptRef | undefined>()
   const [openingWeb, setOpeningWeb] = createSignal(false)
@@ -272,10 +189,29 @@ export function Home() {
     if (openingWeb()) return
     setOpeningWeb(true)
     try {
+      const selectedModel = local.model.current()
+      const agent = local.agent.current()?.name ?? "build"
+      const variant = local.model.variant.current()
+      const workspace = project.workspace.current()
+      const input: Parameters<typeof sdk.client.session.create>[0] = {
+        workspace,
+        agent,
+      }
+      if (selectedModel) {
+        input.model = {
+          providerID: selectedModel.providerID,
+          id: selectedModel.modelID,
+          variant,
+        }
+      }
+      const session = await sdk.client.session.create(input)
+      if (session.error) throw session.error
+
       const base = sdk.openExternalServer ? await sdk.openExternalServer() : sdk.url
-      const url = new URL("/sally", base)
+      const url = new URL(`/sally/${session.data.id}`, base)
       if (sdk.directory) url.searchParams.set("directory", sdk.directory)
       await open(url.toString())
+      router.navigate({ type: "session", sessionID: session.data.id })
       toast.show({
         message: "Sally Web UI opened in browser",
         variant: "success",
@@ -290,11 +226,6 @@ export function Home() {
     }
   }
 
-  const heroAgent = createMemo(() => local.agent.current()?.name ?? "build")
-  const heroModel = createMemo(() => local.model.parsed().model)
-  const heroProvider = createMemo(() => local.model.parsed().provider)
-  const heroWorkspace = createMemo(() => project.workspace.current() ?? "local")
-
   return (
     <>
       <box flexGrow={1} alignItems="center" paddingLeft={2} paddingRight={2}>
@@ -302,7 +233,7 @@ export function Home() {
         <box height={1} minHeight={0} flexShrink={1} />
         <box flexShrink={0}>
           <TuiPluginRuntime.Slot name="home_logo" mode="replace">
-            <HomeHero agent={heroAgent()} model={heroModel()} provider={heroProvider()} workspace={heroWorkspace()} />
+            <HomeLogo />
           </TuiPluginRuntime.Slot>
         </box>
         <box paddingTop={1} flexShrink={0}>
