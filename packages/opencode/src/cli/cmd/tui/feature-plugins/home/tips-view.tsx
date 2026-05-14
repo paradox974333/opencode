@@ -1,8 +1,10 @@
 import type { TuiPluginApi } from "@opencode-ai/plugin/tui"
+import { TextAttributes } from "@opentui/core"
 import { createMemo, For, type Accessor } from "solid-js"
 import { DEFAULT_THEMES, useTheme } from "@tui/context/theme"
 import { Flag } from "@opencode-ai/core/flag/flag"
 import { useCommandShortcut } from "../../keymap"
+import { PanelBorder } from "../../component/border"
 
 const themeCount = Object.keys(DEFAULT_THEMES).length
 
@@ -149,9 +151,22 @@ export function Tips(props: { api: TuiPluginApi; connected?: boolean }) {
   const parts = createMemo(() => parse(tip()))
 
   return (
-    <box flexDirection="row" maxWidth="100%">
-      <text flexShrink={0} style={{ fg: theme.warning }}>
-        ● Tip{" "}
+    <box
+      width="100%"
+      maxWidth={76}
+      flexDirection="row"
+      gap={1}
+      border={["left"]}
+      customBorderChars={PanelBorder.customBorderChars}
+      borderColor={theme.warning}
+      backgroundColor={theme.backgroundPanel}
+      paddingLeft={2}
+      paddingRight={2}
+      paddingTop={1}
+      paddingBottom={1}
+    >
+      <text flexShrink={0} fg={theme.warning} attributes={TextAttributes.BOLD}>
+        HINT
       </text>
       <text flexShrink={1} wrapMode="word">
         <For each={parts()}>
