@@ -1,6 +1,9 @@
 import { Effect } from "effect"
 import { HttpRouter, HttpServerResponse } from "effect/unstable/http"
 
+const IMPERIALX_LOGO =
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAABTkSURBVHhe7Z153FVT28d/a59znwYlRVIoU8hUykyFXhkjKkN5MidjejJmyNRrzIvMPDIUIjJ/ZCxDxihFIYRCZSwS0n4+v90593vua+2z19pn73Of+9T+fj6/P+he01777L32ta7rWkBCQkJCQkJCQkJCQkJCQkLCyksGQGMATYUaAkjJP06oTNYD0BXACQCuAvAggIkApgOYA2A+gB+FvgUwG8AUABMAjAIwDEBfANtlb5KEOogCsA2AgQDuBzADwBIAbsz6AcBkADcAOBRAa9mRhNqjPoDuAEYC+NhnsmpDvMleAzA0ewMm1ALbA7gOwJc+E1JuvQVgMID1ZacTosFFWz8Ak3wuel3UYgD3AdhVDiQhHI0AnAZgls9FrhQ9D2AfObCEYBwAAwB87nNBK1UvZr9KEgzsm/0MkxewaDVu3Nht27at27lzZ7d3797uwIED3bPOOssdNmxYtS666CL3jDPOcI855hj3vfXWc6uqqrT6ImoMgI3loBOAVgBG+1ywUGrYsKG7ww47uKeccop79913u2+//bb7/fffu//8848bliVLlrhffPGF+8ILL7gjRoxwDzvsMHeTTTbR2ixCiwCcKS/Aqsy/soYZeaGsxF/qUUcd5Y4dO9b95ptv5DzGyt9//+1+8MEH3g3RrVs3t169elp/QuhVAO3lxViVaALgXp8LY9Rqq63m/SKffPJJd/HixXKeao3PP//cuxk6duyo9dFSf2QXuqscNK3O9LkggWrTpo17+eWXu1999ZWci7LDV8XBBx+s9dlSNFVzf2KV4MjsnS8vQkFttNFG7s0331zWX7st7733nturVy9tDBb6EEA7ebFWKhwHF/gMvKCaNWvmXnnlle5vv/0mr3Od56WXXnJ32mknbUwGcVPqf+R1WylIKUW7vRxwQfXv37/ki7ra4IorrtDGZtAyAEfI61fRpFPKerG3wQYbeIu7lYE///zT7dOnjzZGS3Eru/JJp9QDPoPz1eGHH+7+8MMP8joWzR9//OHOmDHDffTRR71f4oABA9wePXq4u+22m9uhQwd3yy239MRVfJcuXdyePXu6p556qnvddde5zzzzjGcHWL58uazWil9//dVrR44xpE6R17OiyKTVKKUPyle86HEwbdo09/rrr/cms3Xr1lo7YZTJZNwtttjCsxDef//97tdffy2b82XhwoXu9ttvr9VXjBzHWzRXHlUp9X9yMH7iQm/ChAnyGobio48+ci+++OIo3+NWoqVx77339qyMhZ5U8+bNc9u3b6+VleLNJf9fIaVS2E9e3zpNJu0Msfnl8/OOk1cs48ePd/fZZx/XcRyt7lJr7bXX9kzOU6dOre4P7RObbbaZ9rdSW2+9tTtz5kx36NCh2r/5SSn8XlWFDvI610kaZFI9lNIHIbXNNtsUvcp/8MEH3U6dOml1lkO8+WiVfOyxx7wbWv671LbbbusuWLCgeiwjR47U/sZPSuFrAM3l9a5TNM5k2jpKcbNDG0C+OPn5F8GWV155xd111121+ipFtAv8/PPPcljuAw884CqltL+XUgovy2teZ+jUCVWOoz6QnZbiIzLs5P/yyy/eNq6sq5K05557uosWLZJDq4avM1nGT0rhCnnt6wRVKbOhZ5111nG//PJLOfZAaGPfeOONtboqSVyncHvZxOjRo7Wyfkql6pi1sF69VHfTe59bp++8844ccyDDhw/X6qk0HXjggd42si38HJZ1SCmFuU1X7KaWn+bN0chx1Feyk1JcuNny119/uf369dPqqDRxcViMIcnmdacU/iPnoiykUoqBEloH83XmmWfKMRaE70k6W8g6Kk1HH320HJo19GDaeeedtTqlUinsLuejVmlYVdVBKSyXHcsXV762vwKukOnSJeuoNNHkHBXaFJo0aaLVnS+l8FFZ4xkdR70iO5UvWs5mz54tx+YLF0m77LKLVkel6fTTT5dDKxp+Hsr6pRwHp8p5qRUymdT+sjNSdOKwhd64snyl6bzzzpPDiozJy0gpLGzWDKvL+Sk5jqOmys7ki79mW0477TStfKXpkksukcOKBe4t0LVdtpcvx8FFcn5KSiaT6ik7kS9atfJt5EFwY0WWrzRxq7mUXHvttVqb+VLATwDWkPNUMpRS78hO5Ov444+XY/Dl448/jupaXXbdcMMNclixw89ikzHMcXC2nKeSUD+d7hK000eXbT62TCxbtszbGJHlK0l33nmnHFYoDjroIPf888+X/9uXMWPGaO3nK7tZVE/OV+w4So2TjefL9puf70xZtpJ07733yiFZw+/83OKOr0sGm5hgGTqnyH7ky3G8xBWlo0EDrKsVDomy0zXEm0DuAzAbhvw7P5mcKsolbtPS7byYL54QybT52V23sTEQUYyk4UEOxMLF2VPv3r09hxJu/0b194tLjHukk0ax2UpDnJ3MTC21a+4tFsfBQJ8BaGJMna2Bh/ZwCb+VmaWkVMGnQWK2cXr5mNK6B2EKVMnTolL5+ZUMpXC5z0CK0vDhw+W1qwF9+Glho0t1KR1D6HHEvIf03I0Skk4TL20jsv4CoqGtm7y+FYFSuNlnQKFkc5ZePvTHHzt2rHeBaUc3xM8Fikkn6V3MTzMGa5pyIdjANPV77LGH1laAesvrWlEo4E6fQRnF14MpSZINNCXzKBfmDKQPAV8lTFzVs2dPzwOZYnQwfRjoq8i/4d9ykRrFNd2P8ePHe4YhOdYA9ZPXsyJRCrf4DK6g6DVs4yRZKTCnb8htbIbj95XXsaJRCv/rM1Bf8VOPm0j8xVQ6Y8aMsbXr57QE8I7pWyk5w2fAgeKjmk4RlQYPkerWrZs2HoPmYYXP5UrNQVkXJjn4guIrgSlbTfmI6gKvvfaa26tXL20MFpq84pC2VQP6ERRMQFlIvBHoFRR2d63U8JOQbu62Ng0fcWePeZlXKZh6ZqTPxbAS1wh0qY4SvRsV+vVx0yf/CLqQ+hnAUfLCrGrwlTDH5+JYic4W3HalsYiWwSh5fkzws5DZxZgmP4aj8J4FsIm8GKsqzYDoRiOK7tb8tme4GbOBTZs2zZu4MFuzzB1IEy9d2++55x4vKzrzB8Xko7AAwAB5ARJWwLw2jG+TFy2SuFfA6FvmHaC3Dc25PHSRAalU//79vbUFTck8jZMRxiXwSWDgJu0hreSgE3QY4zbV5yJWqh4D0EkOMiEYB8C/AEzxuaCVIP7ixwHoLAeWEJ4eAJ42uaDXEc3PntXTXg4iITq0HzAMiv7w8sKXU0sB74DNY7ML2oQSowDsjBUJLBmj+JfPpJRadH3jpxxP59xIdjChduEEcOuUj146phr9EkOK7/Nvsvn3LgXQPZs7MaGOQt+5jgAOAzA0a2p9Mmtvnw7gi+xxeAys5DubhigGt/DLYxKAhwHvxK1B2Z055t1pIBtJqFyqsqZoRtUypSr/u7wxdgkJCQkJCQkJCQkJCbXCfwGddLoXL/b9BQAAAABJRU5ErkJggg=="
+
 function sallyUiHtml() {
   return `<!doctype html>
 <html lang="en">
@@ -28,7 +31,10 @@ function sallyUiHtml() {
     }
 
     * { box-sizing: border-box; }
-    html, body, #root { height: 100%; }
+    html, body, #root {
+      height: 100%;
+      min-height: 0;
+    }
     body {
       margin: 0;
       background: var(--bg);
@@ -50,9 +56,12 @@ function sallyUiHtml() {
     }
 
     .app {
-      min-height: 100%;
+      height: 100vh;
+      height: 100dvh;
+      min-height: 0;
       display: grid;
       grid-template-rows: 66px minmax(0, 1fr);
+      overflow: hidden;
       background:
         radial-gradient(circle at 50% -220px, rgba(122, 183, 255, 0.1), transparent 420px),
         var(--bg);
@@ -83,11 +92,17 @@ function sallyUiHtml() {
       height: 34px;
       border-radius: 50%;
       border: 1px solid var(--line-strong);
-      background: var(--surface-2);
-      color: var(--orange);
-      font-weight: 800;
-      letter-spacing: 0;
+      background: #05080d;
       flex: 0 0 auto;
+      overflow: hidden;
+      padding: 3px;
+    }
+
+    .mark img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
     }
 
     .brand h1 {
@@ -221,16 +236,21 @@ function sallyUiHtml() {
     }
 
     .chat-shell {
+      height: 100%;
       min-height: 0;
       display: grid;
       grid-template-rows: minmax(0, 1fr) auto;
       justify-items: center;
+      overflow: hidden;
     }
 
     .messages {
       width: min(980px, calc(100vw - 36px));
+      height: 100%;
       min-height: 0;
-      overflow: auto;
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior: contain;
       padding: 34px 0 22px;
       display: flex;
       flex-direction: column;
@@ -380,6 +400,47 @@ function sallyUiHtml() {
       display: grid;
       gap: 8px;
       font-size: 13px;
+    }
+
+    .thinking {
+      width: min(720px, 100%);
+      border-left: 1px solid rgba(255, 178, 116, 0.45);
+      padding: 8px 0 8px 14px;
+      color: var(--muted);
+    }
+
+    .thinking summary {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 13px;
+      user-select: none;
+    }
+
+    .thinking summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .thinking summary::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--orange);
+      box-shadow: 0 0 14px rgba(255, 178, 116, 0.35);
+    }
+
+    .thinking[open] summary {
+      margin-bottom: 10px;
+      color: var(--text);
+    }
+
+    .thinking .markdown {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
     }
 
     .activity-title {
@@ -856,10 +917,19 @@ function sallyUiHtml() {
 
       function partText(part) {
         if (!part) return ""
-        if (part.type === "text" || part.type === "reasoning") return part.text || ""
+        if (part.type === "text") return part.text || ""
         if (part.type === "file") return "Attached file: " + (part.filename || part.url || "file")
         if (part.type === "patch") return "Patch: " + ((part.files || []).join(", ") || part.hash || "workspace")
         return ""
+      }
+
+      function reasoningText(message) {
+        var parts = Array.isArray(message.parts) ? message.parts : []
+        return parts
+          .filter(function (part) { return part && part.type === "reasoning" })
+          .map(function (part) { return String(part.text || "").replace("[REDACTED]", "").trim() })
+          .filter(Boolean)
+          .join("\\n\\n")
       }
 
       function mainMessageText(message) {
@@ -1225,6 +1295,8 @@ function sallyUiHtml() {
             var info = message.info || {}
             var role = info.role || "assistant"
             var metaTime = info.time && (info.time.created || info.time.completed)
+            var answerText = mainMessageText(message)
+            var thoughtText = reasoningText(message)
             var activityParts = (message.parts || []).filter(function (part) { return part.type && part.type !== "text" && part.type !== "reasoning" })
             return e("article", { key: info.id || Math.random(), className: cx("message", role) },
               e("div", { className: "message-meta" },
@@ -1233,7 +1305,11 @@ function sallyUiHtml() {
                 info.modelID ? e("span", null, info.providerID + " / " + info.modelID) : null,
                 e("span", null, formatTime(metaTime))
               ),
-              e("div", { className: "bubble" }, e(Markdown, { text: mainMessageText(message) })),
+              thoughtText && role !== "user" ? e("details", { className: "thinking", open: !answerText.trim() || answerText === "Working..." },
+                e("summary", null, "Thinking"),
+                e(Markdown, { text: thoughtText })
+              ) : null,
+              answerText ? e("div", { className: "bubble" }, e(Markdown, { text: answerText })) : null,
               activityParts.length && role !== "user" ? e("div", { className: "activity-card" },
                 e("div", { className: "activity-title" }, "Live trace", e("span", { className: "mini" }, activityParts.length + " event" + (activityParts.length === 1 ? "" : "s"))),
                 activityParts.slice(-5).map(function (part, index) {
@@ -1323,7 +1399,7 @@ function sallyUiHtml() {
 
         return e("main", { className: "app" },
           e("header", { className: "topbar" },
-            e("div", { className: "brand" }, e("div", { className: "mark" }, "SC"), e("div", null, e("h1", null, "Sally Code"), e("p", null, activeSessionID ? "Local coding session" : "Coding assistant"))),
+            e("div", { className: "brand" }, e("div", { className: "mark" }, e("img", { src: "${IMPERIALX_LOGO}", alt: "ImperialX" })), e("div", null, e("h1", null, "Sally Code"), e("p", null, activeSessionID ? "Local coding session" : "Coding assistant"))),
             e("nav", { className: "nav-pill" }, e("button", { className: "active", type: "button" }, "Sally"), e("button", { type: "button", onClick: function () { setActivityOpen(true) } }, "Activity"), e("button", { type: "button", onClick: function () { setSettingsOpen(true) } }, "Settings")),
             e("div", { className: "top-actions" },
               e("button", { className: "button", type: "button", onClick: function () { setHistoryOpen(true) } }, "History"),
