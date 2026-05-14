@@ -7,25 +7,24 @@ function sallyUiHtml() {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Sally Code Web UI</title>
+  <title>Sally Code</title>
   <style>
     :root {
       color-scheme: dark;
-      --bg: #0b0d10;
-      --panel: #11151a;
-      --panel-2: #151b22;
-      --panel-3: #1b232c;
-      --line: #28313d;
-      --line-strong: #3a4654;
-      --text: #f5f7fb;
-      --muted: #96a3b2;
-      --soft: #6f7d8e;
-      --blue: #69a7ff;
-      --green: #7bd88f;
-      --orange: #ffaf74;
-      --pink: #f08ab6;
+      --bg: #090d12;
+      --surface: #0d1218;
+      --surface-2: #111822;
+      --surface-3: #17202b;
+      --line: #263141;
+      --line-strong: #3a485b;
+      --text: #f5f8fc;
+      --muted: #98a6b8;
+      --soft: #6d7a8e;
+      --blue: #7ab7ff;
+      --green: #7ddf9a;
+      --orange: #ffb274;
       --red: #ff7f8a;
-      --shadow: rgba(0, 0, 0, 0.26);
+      --shadow: rgba(0, 0, 0, 0.35);
     }
 
     * { box-sizing: border-box; }
@@ -46,86 +45,115 @@ function sallyUiHtml() {
       cursor: pointer;
     }
 
+    h1, h2, h3, p {
+      margin: 0;
+    }
+
     .app {
+      min-height: 100%;
       display: grid;
-      grid-template-columns: 286px minmax(0, 1fr) 360px;
-      height: 100%;
-      min-height: 0;
+      grid-template-rows: 66px minmax(0, 1fr);
+      background:
+        radial-gradient(circle at 50% -220px, rgba(122, 183, 255, 0.1), transparent 420px),
+        var(--bg);
     }
 
-    .sidebar, .inspector {
-      min-height: 0;
-      background: var(--panel);
-      border-color: var(--line);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
+    .topbar {
+      display: grid;
+      grid-template-columns: minmax(190px, 1fr) auto minmax(190px, 1fr);
+      align-items: center;
+      gap: 18px;
+      padding: 0 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      background: rgba(9, 13, 18, 0.9);
+      backdrop-filter: blur(16px);
     }
-
-    .sidebar { border-right: 1px solid var(--line); }
-    .inspector { border-left: 1px solid var(--line); }
 
     .brand {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 16px;
-      border-bottom: 1px solid var(--line);
+      gap: 11px;
+      min-width: 0;
     }
 
     .mark {
       display: grid;
       place-items: center;
-      width: 38px;
-      height: 38px;
-      border-radius: 8px;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
       border: 1px solid var(--line-strong);
-      background: var(--panel-3);
+      background: var(--surface-2);
       color: var(--orange);
       font-weight: 800;
       letter-spacing: 0;
-    }
-
-    h1, h2, h3, p {
-      margin: 0;
+      flex: 0 0 auto;
     }
 
     .brand h1 {
-      font-size: 15px;
+      font-size: 16px;
       line-height: 1.1;
     }
 
     .brand p {
-      margin-top: 4px;
+      margin-top: 3px;
       color: var(--muted);
       font-size: 12px;
     }
 
-    .sidebar-actions {
-      display: grid;
+    .nav-pill {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(15, 21, 29, 0.78);
+      box-shadow: 0 12px 40px var(--shadow);
+    }
+
+    .nav-pill button {
+      min-height: 36px;
+      border-radius: 999px;
+      border: 0;
+      padding: 0 18px;
+      color: var(--muted);
+      background: transparent;
+    }
+
+    .nav-pill button.active {
+      color: var(--text);
+      background: #131c27;
+      box-shadow: inset 0 0 0 1px var(--line-strong);
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
       gap: 8px;
-      padding: 12px;
-      border-bottom: 1px solid var(--line);
+      min-width: 0;
     }
 
     .button {
+      min-height: 36px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
-      min-height: 36px;
-      border-radius: 8px;
-      border: 1px solid var(--line-strong);
-      background: var(--panel-3);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--surface);
       color: var(--text);
       padding: 0 12px;
       text-decoration: none;
       transition: background 120ms ease, border-color 120ms ease, transform 120ms ease;
+      white-space: nowrap;
     }
 
     .button:hover {
-      background: #222a34;
-      border-color: #526173;
+      background: var(--surface-2);
+      border-color: var(--line-strong);
     }
 
     .button:active {
@@ -133,19 +161,22 @@ function sallyUiHtml() {
     }
 
     .button.primary {
-      background: #173251;
-      border-color: #2e6aa4;
-      color: #e0f0ff;
+      background: #e8eef7;
+      border-color: #e8eef7;
+      color: #101620;
+      font-weight: 650;
     }
 
     .button.danger {
-      background: #311b22;
-      border-color: #6e3945;
+      background: #2a151b;
+      border-color: #6a3540;
       color: #ffdce2;
     }
 
-    .button.ghost {
-      background: transparent;
+    .model-summary {
+      max-width: min(34vw, 320px);
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .button[disabled] {
@@ -154,210 +185,77 @@ function sallyUiHtml() {
       transform: none;
     }
 
-    .section-label {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 14px 14px 8px;
-      color: var(--soft);
-      text-transform: uppercase;
-      font-size: 11px;
-      letter-spacing: 0;
-    }
-
-    .session-list {
-      min-height: 0;
-      overflow: auto;
-      padding: 0 10px 14px;
-    }
-
-    .session {
-      width: 100%;
-      display: grid;
-      gap: 5px;
-      text-align: left;
-      border-radius: 8px;
-      padding: 10px;
-      color: var(--text);
-      background: transparent;
-      border: 1px solid transparent;
-    }
-
-    .session:hover {
-      background: #141a21;
-      border-color: var(--line);
-    }
-
-    .session.active {
-      background: #17202b;
-      border-color: #34516e;
-    }
-
-    .session-title {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      font-size: 13px;
-      font-weight: 650;
-    }
-
-    .session-meta {
-      color: var(--muted);
-      font-size: 11px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .main {
-      min-width: 0;
-      min-height: 0;
-      display: grid;
-      grid-template-rows: auto minmax(0, 1fr) auto;
-      background:
-        linear-gradient(rgba(255,255,255,0.022) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.022) 1px, transparent 1px),
-        var(--bg);
-      background-size: 28px 28px;
-    }
-
-    .topbar {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 14px;
-      align-items: center;
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--line);
-      background: rgba(11, 13, 16, 0.94);
-      backdrop-filter: blur(14px);
-    }
-
-    .top-title {
-      min-width: 0;
-    }
-
-    .top-title h2 {
-      font-size: 14px;
-      line-height: 1.2;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .top-title small {
-      display: block;
-      margin-top: 4px;
-      color: var(--muted);
-      font-size: 11px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .top-controls {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-      gap: 8px;
-    }
-
-    .field {
-      display: grid;
-      gap: 4px;
-      min-width: 148px;
-    }
-
-    .field label {
-      color: var(--soft);
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0;
-    }
-
-    select, input.rename-input {
-      min-height: 34px;
-      border-radius: 8px;
-      border: 1px solid var(--line-strong);
-      background: #10151b;
-      color: var(--text);
-      outline: none;
-      padding: 0 10px;
-      max-width: 260px;
-    }
-
-    select:focus, textarea:focus, input.rename-input:focus {
-      border-color: #4d84bd;
-      box-shadow: 0 0 0 3px rgba(105, 167, 255, 0.12);
-    }
-
     .status-pill {
+      min-height: 34px;
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      min-height: 34px;
-      border-radius: 999px;
       border: 1px solid var(--line);
-      background: #10151b;
+      border-radius: 999px;
+      background: var(--surface);
       color: var(--muted);
+      padding: 0 11px;
       font-size: 12px;
-      padding: 0 10px;
-      align-self: end;
+      white-space: nowrap;
     }
 
     .dot {
       width: 7px;
       height: 7px;
-      border-radius: 99px;
+      border-radius: 50%;
       background: var(--green);
-      box-shadow: 0 0 12px rgba(123, 216, 143, 0.42);
+      box-shadow: 0 0 14px rgba(125, 223, 154, 0.45);
     }
 
     .dot.busy {
       background: var(--orange);
-      box-shadow: 0 0 12px rgba(255, 175, 116, 0.42);
+      box-shadow: 0 0 14px rgba(255, 178, 116, 0.45);
     }
 
-    .error {
-      display: none;
-      margin: 12px 16px 0;
-      border-radius: 8px;
-      border: 1px solid #79434b;
-      background: #321b1f;
-      color: #ffd9d9;
-      padding: 10px;
-      font-size: 12px;
-      line-height: 1.4;
+    .main {
+      min-height: 0;
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      overflow: hidden;
     }
 
-    .error.visible {
-      display: block;
+    .chat-shell {
+      min-height: 0;
+      display: grid;
+      grid-template-rows: minmax(0, 1fr) auto;
+      justify-items: center;
     }
 
     .messages {
+      width: min(980px, calc(100vw - 36px));
       min-height: 0;
       overflow: auto;
-      padding: 22px;
+      padding: 34px 0 22px;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 22px;
+      scrollbar-color: #344153 transparent;
     }
 
     .empty {
-      width: min(680px, 100%);
       margin: auto;
-      border: 1px solid var(--line);
-      background: rgba(17, 21, 26, 0.88);
-      border-radius: 8px;
-      padding: 22px;
-      box-shadow: 0 18px 50px var(--shadow);
+      width: min(820px, 100%);
+      display: grid;
+      justify-items: center;
+      text-align: center;
+      gap: 18px;
+      padding-bottom: 8vh;
     }
 
-    .empty h3 {
-      font-size: 20px;
-      margin-bottom: 8px;
+    .empty h2 {
+      font-size: clamp(24px, 3vw, 38px);
+      font-weight: 650;
+      letter-spacing: 0;
     }
 
     .empty p {
+      width: min(640px, 100%);
       color: var(--muted);
       line-height: 1.55;
     }
@@ -365,31 +263,33 @@ function sallyUiHtml() {
     .suggestions {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 16px;
+      justify-content: center;
+      gap: 9px;
+      width: min(760px, 100%);
     }
 
     .suggestion {
       min-height: 34px;
-      border-radius: 999px;
       border: 1px solid var(--line);
-      background: #161d25;
+      border-radius: 999px;
+      background: rgba(17, 24, 34, 0.9);
       color: var(--text);
-      padding: 0 12px;
+      padding: 0 13px;
     }
 
     .message {
+      width: min(820px, 100%);
       display: grid;
-      gap: 6px;
-      max-width: min(820px, 88%);
+      gap: 8px;
+      align-self: center;
     }
 
     .message.user {
-      align-self: flex-end;
+      justify-items: end;
     }
 
     .message.assistant {
-      align-self: flex-start;
+      justify-items: start;
     }
 
     .message-meta {
@@ -398,32 +298,38 @@ function sallyUiHtml() {
       gap: 8px;
       color: var(--soft);
       font-size: 11px;
-      padding: 0 4px;
+      padding: 0 2px;
     }
 
     .bubble {
-      border-radius: 8px;
-      border: 1px solid var(--line);
-      background: rgba(18, 23, 29, 0.94);
-      padding: 12px 13px;
-      line-height: 1.55;
+      max-width: min(760px, 100%);
+      border: 1px solid transparent;
+      border-radius: 16px;
+      line-height: 1.58;
       overflow-wrap: anywhere;
     }
 
     .message.user .bubble {
-      background: #173251;
-      border-color: #2f679d;
-      color: #ecf6ff;
+      padding: 11px 14px;
+      border-color: #2d5d91;
+      background: #123154;
+      color: #edf7ff;
+    }
+
+    .message.assistant .bubble {
+      padding: 0;
+      background: transparent;
+      color: var(--text);
     }
 
     .markdown {
-      font-size: 14px;
+      font-size: 15px;
     }
 
     .markdown > *:first-child { margin-top: 0; }
     .markdown > *:last-child { margin-bottom: 0; }
-    .markdown p { margin: 0 0 10px; }
-    .markdown ul, .markdown ol { margin: 8px 0 10px 22px; padding: 0; }
+    .markdown p { margin: 0 0 11px; }
+    .markdown ul, .markdown ol { margin: 8px 0 11px 22px; padding: 0; }
     .markdown li { margin: 4px 0; }
     .markdown a { color: var(--blue); }
     .markdown code {
@@ -435,11 +341,11 @@ function sallyUiHtml() {
       font-size: 0.92em;
     }
     .markdown pre {
-      margin: 10px 0;
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 8px;
+      margin: 12px 0;
+      border: 1px solid var(--line);
+      border-radius: 12px;
       background: #0c1117;
-      padding: 12px;
+      padding: 13px;
       overflow: auto;
     }
     .markdown pre code {
@@ -449,7 +355,7 @@ function sallyUiHtml() {
       white-space: pre;
     }
     .markdown blockquote {
-      margin: 10px 0;
+      margin: 12px 0;
       border-left: 3px solid var(--blue);
       padding-left: 12px;
       color: var(--muted);
@@ -457,190 +363,384 @@ function sallyUiHtml() {
     .markdown table {
       border-collapse: collapse;
       width: 100%;
-      margin: 10px 0;
+      margin: 12px 0;
     }
     .markdown th, .markdown td {
       border: 1px solid var(--line);
-      padding: 6px 8px;
+      padding: 7px 9px;
       text-align: left;
     }
 
-    .part-list {
+    .activity-card {
+      margin-top: 4px;
+      width: min(680px, 100%);
+      border-left: 1px solid var(--line-strong);
+      color: var(--muted);
+      padding-left: 16px;
       display: grid;
-      gap: 6px;
-      margin-top: 10px;
-      padding-top: 10px;
-      border-top: 1px solid rgba(255,255,255,0.07);
+      gap: 8px;
+      font-size: 13px;
     }
 
-    .part {
-      border: 1px solid rgba(255,255,255,0.055);
-      background: #121820;
-      border-radius: 8px;
-      padding: 8px;
+    .activity-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text);
+      font-weight: 650;
+    }
+
+    .activity-title .mini {
       color: var(--muted);
+      font-weight: 500;
       font-size: 12px;
     }
 
-    .composer {
-      padding: 14px 18px 18px;
-      border-top: 1px solid var(--line);
-      background: rgba(11, 13, 16, 0.95);
-      backdrop-filter: blur(14px);
+    .activity-row {
+      display: flex;
+      gap: 10px;
+      align-items: baseline;
+      min-width: 0;
     }
 
-    .composer form {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 10px;
-      align-items: end;
-      max-width: 1040px;
+    .activity-row span:first-child {
+      color: var(--soft);
+      text-transform: uppercase;
+      font-size: 11px;
+      flex: 0 0 auto;
+    }
+
+    .activity-row span:last-child {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .composer-wrap {
+      width: 100%;
+      padding: 12px 18px 18px;
+      background: linear-gradient(transparent, rgba(9, 13, 18, 0.92) 22%);
+    }
+
+    .composer {
+      width: min(880px, 100%);
       margin: 0 auto;
+      display: grid;
+      gap: 9px;
+    }
+
+    .live-strip {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(13, 18, 24, 0.88);
+      color: var(--muted);
+      padding: 0 12px;
+      font-size: 12px;
+    }
+
+    .live-strip.visible {
+      display: flex;
+    }
+
+    .live-strip strong {
+      color: var(--text);
+      font-weight: 650;
+    }
+
+    .composer-box {
+      position: relative;
+      border: 1px solid var(--line-strong);
+      border-radius: 24px;
+      background: rgba(13, 18, 24, 0.96);
+      box-shadow: 0 18px 60px var(--shadow);
+      padding: 14px 78px 14px 18px;
     }
 
     textarea {
       width: 100%;
-      resize: none;
-      min-height: 62px;
+      min-height: 70px;
       max-height: 190px;
-      border-radius: 8px;
-      border: 1px solid var(--line-strong);
-      background: #10151b;
+      resize: none;
+      border: 0;
+      outline: 0;
+      background: transparent;
       color: var(--text);
-      outline: none;
-      padding: 12px 13px;
       line-height: 1.45;
+      padding: 0;
     }
 
-    .inspector-scroll {
+    textarea::placeholder {
+      color: #9fb0c4;
+    }
+
+    .send-button {
+      position: absolute;
+      right: 12px;
+      bottom: 12px;
+      width: 58px;
+      height: 36px;
+      border: 0;
+      border-radius: 999px;
+      background: #dbe5f2;
+      color: #111821;
+      font-size: 12px;
+      font-weight: 750;
+      display: grid;
+      place-items: center;
+    }
+
+    .send-button[disabled] {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .error {
+      width: min(880px, calc(100vw - 36px));
+      margin: 10px auto 0;
+      border: 1px solid #70404a;
+      border-radius: 12px;
+      background: #2b171d;
+      color: #ffdce2;
+      padding: 10px 12px;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .drawer-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      background: rgba(0,0,0,0.38);
+      backdrop-filter: blur(4px);
+    }
+
+    .drawer {
+      position: fixed;
+      z-index: 21;
+      top: 14px;
+      right: 14px;
+      bottom: 14px;
+      width: min(390px, calc(100vw - 28px));
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: rgba(13, 18, 24, 0.98);
+      box-shadow: 0 24px 90px rgba(0,0,0,0.48);
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      overflow: hidden;
+    }
+
+    .drawer.left {
+      left: 14px;
+      right: auto;
+    }
+
+    .drawer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .drawer-header h2 {
+      font-size: 15px;
+    }
+
+    .drawer-header p {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .drawer-body {
       min-height: 0;
       overflow: auto;
-      padding: 12px;
+      padding: 14px;
       display: grid;
       align-content: start;
       gap: 12px;
     }
 
+    .session-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .session {
+      width: 100%;
+      border: 1px solid transparent;
+      border-radius: 14px;
+      background: transparent;
+      color: var(--text);
+      padding: 11px 12px;
+      text-align: left;
+      display: grid;
+      gap: 4px;
+    }
+
+    .session:hover {
+      background: var(--surface-2);
+      border-color: var(--line);
+    }
+
+    .session.active {
+      background: #142030;
+      border-color: #35516f;
+    }
+
+    .session strong {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 13px;
+    }
+
+    .session small {
+      color: var(--muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 11px;
+    }
+
     .panel {
       border: 1px solid var(--line);
-      border-radius: 8px;
-      background: #11161d;
+      border-radius: 16px;
+      background: var(--surface);
       overflow: hidden;
     }
 
-    .panel-header {
+    .panel-title {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 12px;
+      gap: 10px;
+      padding: 12px;
       border-bottom: 1px solid var(--line);
       font-size: 13px;
       font-weight: 650;
     }
 
-    .panel-header span:last-child {
-      color: var(--soft);
+    .panel-title span:last-child {
+      color: var(--muted);
+      font-size: 12px;
       font-weight: 500;
-      font-size: 11px;
     }
 
     .panel-body {
-      padding: 10px;
+      padding: 12px;
       display: grid;
-      gap: 8px;
+      gap: 9px;
     }
 
-    .change, .todo, .kv {
-      border-radius: 8px;
-      background: #151b22;
-      border: 1px solid rgba(255,255,255,0.055);
-      padding: 9px;
+    .field {
+      display: grid;
+      gap: 5px;
     }
 
-    .change strong, .todo strong {
-      display: block;
-      font-size: 12px;
-      overflow-wrap: anywhere;
-    }
-
-    .change small, .todo small, .kv small {
-      display: block;
-      margin-top: 5px;
-      color: var(--muted);
+    .field label {
+      color: var(--soft);
       font-size: 11px;
+      text-transform: uppercase;
     }
 
-    .status-added { color: var(--green); }
-    .status-deleted { color: var(--pink); }
-    .status-modified { color: var(--orange); }
-
-    .kv {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    .kv strong {
+    select, input.rename-input {
+      width: 100%;
+      min-height: 38px;
+      border: 1px solid var(--line-strong);
+      border-radius: 12px;
+      background: #0c1219;
       color: var(--text);
-      font-weight: 650;
-      text-align: right;
-      overflow-wrap: anywhere;
+      padding: 0 11px;
+      outline: 0;
     }
 
-    .rename-row, .session-actions {
+    select:focus, input.rename-input:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(122, 183, 255, 0.12);
+    }
+
+    .row {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
     }
 
-    .rename-input {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .offline {
-      display: grid;
-      place-items: center;
-      height: 100%;
-      padding: 24px;
+    .kv {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px;
+      background: #101720;
       color: var(--muted);
-      text-align: center;
+      padding: 9px;
+      font-size: 12px;
     }
 
-    @media (max-width: 1120px) {
-      .app { grid-template-columns: 250px minmax(0, 1fr); }
-      .inspector { display: none; }
+    .kv strong {
+      color: var(--text);
+      text-align: right;
+      overflow-wrap: anywhere;
     }
 
-    @media (max-width: 780px) {
-      body { overflow: auto; }
-      .app {
-        grid-template-columns: 1fr;
-        height: auto;
-        min-height: 100%;
+    .change, .todo {
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px;
+      background: #101720;
+      padding: 9px;
+      display: grid;
+      gap: 4px;
+    }
+
+    .change strong, .todo strong {
+      font-size: 12px;
+      overflow-wrap: anywhere;
+    }
+
+    .change small, .todo small {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .status-added { color: var(--green); }
+    .status-deleted { color: var(--red); }
+    .status-modified { color: var(--orange); }
+
+    @media (max-width: 820px) {
+      .topbar {
+        grid-template-columns: 1fr auto;
       }
-      .sidebar {
-        max-height: 270px;
-        border-right: 0;
-        border-bottom: 1px solid var(--line);
+      .nav-pill {
+        display: none;
       }
-      .main { min-height: 72vh; }
-      .topbar { grid-template-columns: 1fr; }
-      .top-controls { justify-content: stretch; }
-      .field { min-width: 100%; }
-      .field select { max-width: none; width: 100%; }
-      .messages { padding: 16px; }
-      .message { max-width: 96%; }
-      .composer form { grid-template-columns: 1fr; }
+      .top-actions .status-pill {
+        display: none;
+      }
+      .top-actions .model-summary {
+        display: none;
+      }
+      .messages {
+        width: calc(100vw - 28px);
+        padding-top: 24px;
+      }
+      .composer-wrap {
+        padding-left: 14px;
+        padding-right: 14px;
+      }
     }
   </style>
 </head>
 <body>
   <div id="root">
-    <div class="offline">Loading Sally Web UI...</div>
+    <div class="empty"><h2>Loading Sally Code...</h2></div>
   </div>
   <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
@@ -649,7 +749,7 @@ function sallyUiHtml() {
   <script>
     (function () {
       if (!window.React || !window.ReactDOM) {
-        document.getElementById("root").innerHTML = '<div class="offline">React could not load. Check your internet connection and refresh.</div>'
+        document.getElementById("root").innerHTML = '<div class="empty"><h2>React could not load</h2><p>Check your internet connection and refresh.</p></div>'
         return
       }
 
@@ -663,10 +763,10 @@ function sallyUiHtml() {
       var initialSessionID = params.get("session") || (pathParts[0] === "sally" && pathParts[1] ? pathParts[1] : "")
       var initialDirectory = params.get("directory") || ""
       var suggestions = [
-        "Explain how this codebase is organized",
-        "Find likely bugs and missing tests in this workspace",
-        "Run the relevant tests and fix any failures",
-        "Polish the UI and keep the changes scoped"
+        "Explain this project and the important files",
+        "Find bugs and missing tests",
+        "Run tests and fix failures",
+        "Polish the UI in this workspace"
       ]
       var agents = ["build", "general", "plan"]
 
@@ -676,10 +776,6 @@ function sallyUiHtml() {
 
       function cx() {
         return Array.prototype.slice.call(arguments).filter(Boolean).join(" ")
-      }
-
-      function escapeText(value) {
-        return String(value == null ? "" : value)
       }
 
       function withDirectory(path) {
@@ -713,21 +809,19 @@ function sallyUiHtml() {
       }
 
       function sessionTitle(session) {
-        if (!session) return "Sally Web UI"
+        if (!session) return "New Sally session"
         return session.title || session.slug || session.id
       }
 
       function markdownHtml(value) {
-        var text = escapeText(value)
+        var text = String(value == null ? "" : value)
         if (!text.trim()) return ""
         var html = window.marked && window.marked.parse ? window.marked.parse(text) : text
         return window.DOMPurify ? window.DOMPurify.sanitize(html) : html
       }
 
       function Markdown(props) {
-        var html = useMemo(function () {
-          return markdownHtml(props.text)
-        }, [props.text])
+        var html = useMemo(function () { return markdownHtml(props.text) }, [props.text])
         return e("div", { className: "markdown", dangerouslySetInnerHTML: { __html: html } })
       }
 
@@ -773,16 +867,10 @@ function sallyUiHtml() {
         var text = parts.map(partText).filter(Boolean).join("\\n\\n")
         if (text.trim()) return text
         if (message.info && message.info.error) return "Error: " + (message.info.error.message || message.info.error.name || "failed")
-        return "No visible content yet."
+        return "Working..."
       }
 
-      function activityParts(message) {
-        return (message.parts || []).filter(function (part) {
-          return part.type && part.type !== "text" && part.type !== "reasoning"
-        })
-      }
-
-      function partLabel(part) {
+      function activityLabel(part) {
         if (!part) return "Activity"
         if (part.type === "tool") return "Tool: " + (part.title || part.tool || part.name || "running")
         if (part.type === "file") return "File: " + (part.filename || part.url || "attached")
@@ -794,8 +882,22 @@ function sallyUiHtml() {
 
       function Panel(props) {
         return e("section", { className: "panel" },
-          e("div", { className: "panel-header" }, e("span", null, props.title), e("span", null, props.meta || "")),
+          e("div", { className: "panel-title" }, e("span", null, props.title), e("span", null, props.meta || "")),
           e("div", { className: "panel-body" }, props.children)
+        )
+      }
+
+      function Drawer(props) {
+        if (!props.open) return null
+        return e(React.Fragment, null,
+          e("div", { className: "drawer-backdrop", onClick: props.onClose }),
+          e("aside", { className: cx("drawer", props.side === "left" && "left") },
+            e("div", { className: "drawer-header" },
+              e("div", null, e("h2", null, props.title), e("p", null, props.subtitle || "")),
+              e("button", { className: "button", type: "button", onClick: props.onClose }, "Close")
+            ),
+            e("div", { className: "drawer-body" }, props.children)
+          )
         )
       }
 
@@ -803,6 +905,7 @@ function sallyUiHtml() {
         var messageEndRef = useRef(null)
         var inputRef = useRef(null)
         var pollRef = useRef(null)
+        var eventRef = useRef(null)
         var activeRef = useRef(initialSessionID)
         var selectionRef = useRef({ providerID: "", modelID: "", variant: "" })
         var agentRef = useRef("build")
@@ -812,6 +915,7 @@ function sallyUiHtml() {
         var [messages, setMessages] = useState([])
         var [changes, setChanges] = useState([])
         var [todos, setTodos] = useState([])
+        var [activities, setActivities] = useState([{ kind: "status", text: "Connected to Sally Web UI", time: Date.now() }])
         var [providerPayload, setProviderPayload] = useState(null)
         var [providers, setProviders] = useState([])
         var [selectedProviderID, setSelectedProviderID] = useState("")
@@ -824,6 +928,9 @@ function sallyUiHtml() {
         var [loading, setLoading] = useState(true)
         var [error, setError] = useState("")
         var [lastSync, setLastSync] = useState("")
+        var [historyOpen, setHistoryOpen] = useState(false)
+        var [settingsOpen, setSettingsOpen] = useState(false)
+        var [activityOpen, setActivityOpen] = useState(false)
 
         var activeSession = useMemo(function () {
           return sessions.find(function (item) { return item.id === activeSessionID })
@@ -833,19 +940,15 @@ function sallyUiHtml() {
           return providers.find(function (item) { return item.id === selectedProviderID })
         }, [providers, selectedProviderID])
 
-        var models = useMemo(function () {
-          return modelValues(selectedProvider)
-        }, [selectedProvider])
-
+        var models = useMemo(function () { return modelValues(selectedProvider) }, [selectedProvider])
         var selectedModel = useMemo(function () {
           return models.find(function (item) { return item.id === selectedModelID })
         }, [models, selectedModelID])
-
         var variants = useMemo(function () {
           return selectedModel && selectedModel.variants ? Object.keys(selectedModel.variants) : []
         }, [selectedModel])
-
         var activeStatus = statusOf(status, activeSessionID)
+        var latestActivity = activities[0]
 
         useEffect(function () {
           activeRef.current = activeSessionID
@@ -853,16 +956,10 @@ function sallyUiHtml() {
         }, [activeSessionID])
 
         useEffect(function () {
-          selectionRef.current = {
-            providerID: selectedProviderID,
-            modelID: selectedModelID,
-            variant: selectedVariant
-          }
+          selectionRef.current = { providerID: selectedProviderID, modelID: selectedModelID, variant: selectedVariant }
         }, [selectedProviderID, selectedModelID, selectedVariant])
 
-        useEffect(function () {
-          agentRef.current = agent
-        }, [agent])
+        useEffect(function () { agentRef.current = agent }, [agent])
 
         useEffect(function () {
           if (activeSession) setRenameValue(sessionTitle(activeSession))
@@ -872,6 +969,7 @@ function sallyUiHtml() {
           bootstrap()
           return function () {
             if (pollRef.current) window.clearInterval(pollRef.current)
+            if (eventRef.current) eventRef.current.close()
           }
         }, [])
 
@@ -885,19 +983,63 @@ function sallyUiHtml() {
           if (messageEndRef.current) messageEndRef.current.scrollIntoView({ block: "end" })
         }, [messages.length])
 
+        function addActivity(kind, text) {
+          setActivities(function (current) {
+            var next = [{ kind: kind, text: text, time: Date.now() }].concat(current)
+            return next.slice(0, 80)
+          })
+        }
+
         async function bootstrap() {
           try {
             setError("")
             await Promise.all([loadProviders(), refreshSessions()])
+            connectEvents()
             if (pollRef.current) window.clearInterval(pollRef.current)
-            pollRef.current = window.setInterval(function () {
-              refreshAll(true)
-            }, 1500)
+            pollRef.current = window.setInterval(function () { refreshAll(true) }, 4500)
           } catch (err) {
             setError(err.message || String(err))
           } finally {
             setLoading(false)
           }
+        }
+
+        function connectEvents() {
+          if (eventRef.current) eventRef.current.close()
+          try {
+            var source = new EventSource(withDirectory("/event"))
+            eventRef.current = source
+            source.onmessage = function (message) {
+              var event
+              try { event = JSON.parse(message.data) } catch (_) { return }
+              handleEvent(event)
+            }
+            source.onerror = function () {
+              addActivity("status", "Live stream reconnecting")
+            }
+          } catch (_) {}
+        }
+
+        function eventSessionID(event) {
+          var p = event && event.properties || {}
+          return p.sessionID || p.info && p.info.id || undefined
+        }
+
+        function handleEvent(event) {
+          var type = event && event.type || "event"
+          var sessionID = eventSessionID(event)
+          var active = activeRef.current
+          if (type === "server.connected") addActivity("status", "Live stream connected")
+          if (type === "server.heartbeat") return
+          if (type === "session.status" && (!sessionID || sessionID === active)) {
+            var statusText = event.properties && event.properties.status && event.properties.status.type || "working"
+            addActivity(statusText === "idle" ? "done" : "status", statusText === "idle" ? "Response complete" : "Sally is " + statusText)
+          }
+          if (type.indexOf("message.part") >= 0 && (!sessionID || sessionID === active)) addActivity("step", "Streaming response updates")
+          if (type.indexOf("tool") >= 0 && (!sessionID || sessionID === active)) addActivity("tool", "Tool activity")
+          if (type === "todo.updated" && (!sessionID || sessionID === active)) addActivity("todo", "Todo list updated")
+          if (type.indexOf("session.") === 0) refreshSessions().catch(function () {})
+          if (!sessionID || sessionID === active) loadActive(active, true)
         }
 
         async function loadProviders() {
@@ -914,14 +1056,9 @@ function sallyUiHtml() {
         }
 
         async function refreshSessions() {
-          var result = await Promise.all([
-            api("/session?limit=60", []),
-            api("/session/status", {})
-          ])
+          var result = await Promise.all([api("/session?limit=60", []), api("/session/status", {})])
           var list = Array.isArray(result[0]) ? result[0] : []
-          list = list.slice().sort(function (a, b) {
-            return (b.time && b.time.updated || 0) - (a.time && a.time.updated || 0)
-          })
+          list = list.slice().sort(function (a, b) { return (b.time && b.time.updated || 0) - (a.time && a.time.updated || 0) })
           setSessions(list)
           setStatus(result[1] || {})
           if (!activeRef.current && list.length) setActiveSessionID(list[0].id)
@@ -973,30 +1110,20 @@ function sallyUiHtml() {
 
         async function selectTerminalSession(sessionID) {
           if (!sessionID) return
-          await api("/tui/select-session", true, {
-            method: "POST",
-            body: JSON.stringify({ sessionID: sessionID })
-          }).catch(function () {})
+          await api("/tui/select-session", true, { method: "POST", body: JSON.stringify({ sessionID: sessionID }) }).catch(function () {})
         }
 
         async function createSession() {
           var selection = selectionRef.current
-          var model = selection.providerID && selection.modelID
-            ? { providerID: selection.providerID, id: selection.modelID, variant: selection.variant || undefined }
-            : undefined
-          var payload = {
-            title: "Sally Web - " + new Date().toLocaleString(),
-            agent: agentRef.current
-          }
+          var model = selection.providerID && selection.modelID ? { providerID: selection.providerID, id: selection.modelID, variant: selection.variant || undefined } : undefined
+          var payload = { title: "Sally Web - " + new Date().toLocaleString(), agent: agentRef.current }
           if (model) payload.model = model
-          var created = await api("/session", null, {
-            method: "POST",
-            body: JSON.stringify(payload)
-          })
+          var created = await api("/session", null, { method: "POST", body: JSON.stringify(payload) })
           if (created && created.id) {
             activeRef.current = created.id
             setActiveSessionID(created.id)
             await selectTerminalSession(created.id)
+            addActivity("status", "New session created")
             await refreshAll(true)
             return created.id
           }
@@ -1006,10 +1133,8 @@ function sallyUiHtml() {
 
         async function renameSession() {
           if (!activeSessionID || !renameValue.trim()) return
-          await api("/session/" + encodeURIComponent(activeSessionID), null, {
-            method: "PATCH",
-            body: JSON.stringify({ title: renameValue.trim() })
-          })
+          await api("/session/" + encodeURIComponent(activeSessionID), null, { method: "PATCH", body: JSON.stringify({ title: renameValue.trim() }) })
+          addActivity("status", "Session renamed")
           await refreshAll(true)
         }
 
@@ -1022,12 +1147,14 @@ function sallyUiHtml() {
           setMessages([])
           setChanges([])
           setTodos([])
+          addActivity("status", "Session deleted")
           await refreshAll(true)
         }
 
         async function abortSession() {
           if (!activeSessionID) return
           await api("/session/" + encodeURIComponent(activeSessionID) + "/abort", true, { method: "POST" })
+          addActivity("status", "Abort requested")
           await refreshAll(true)
         }
 
@@ -1035,29 +1162,21 @@ function sallyUiHtml() {
           var trimmed = text.trim()
           if (!trimmed || sending) return
           var sessionID = activeRef.current
-          if (!sessionID) {
-            sessionID = await createSession()
-          }
+          if (!sessionID) sessionID = await createSession()
           if (!sessionID) return
           var selection = selectionRef.current
-          var payload = {
-            agent: agentRef.current,
-            parts: [{ type: "text", text: trimmed }]
-          }
-          if (selection.providerID && selection.modelID) {
-            payload.model = { providerID: selection.providerID, modelID: selection.modelID }
-          }
+          var payload = { agent: agentRef.current, parts: [{ type: "text", text: trimmed }] }
+          if (selection.providerID && selection.modelID) payload.model = { providerID: selection.providerID, modelID: selection.modelID }
           if (selection.variant) payload.variant = selection.variant
           setSending(true)
           try {
             setError("")
+            addActivity("status", "Preparing live context")
             await selectTerminalSession(sessionID)
-            await api("/session/" + encodeURIComponent(sessionID) + "/prompt_async", null, {
-              method: "POST",
-              body: JSON.stringify(payload)
-            })
+            await api("/session/" + encodeURIComponent(sessionID) + "/prompt_async", null, { method: "POST", body: JSON.stringify(payload) })
             setInput("")
-            if (inputRef.current) inputRef.current.style.height = "62px"
+            if (inputRef.current) inputRef.current.style.height = "70px"
+            addActivity("status", "Prompt sent to Sally")
             await refreshAll(true)
           } catch (err) {
             setError(err.message || String(err))
@@ -1092,42 +1211,13 @@ function sallyUiHtml() {
           }
         }
 
-        function renderSessions() {
-          if (!sessions.length) {
-            return e("div", { className: "session-meta", style: { padding: "10px" } }, "No sessions yet.")
-          }
-          return sessions.map(function (session) {
-            var statusText = statusOf(status, session.id)
-            return e("button", {
-              key: session.id,
-              type: "button",
-              className: cx("session", session.id === activeSessionID && "active"),
-              onClick: function () { setActiveSessionID(session.id) }
-            },
-              e("span", { className: "session-title" }, sessionTitle(session)),
-              e("span", { className: "session-meta" }, statusText + " - " + formatTime(session.time && session.time.updated))
-            )
-          })
-        }
-
         function renderMessages() {
           if (!messages.length) {
             return e("div", { className: "empty" },
-              e("h3", null, activeSessionID ? "Ready in this session" : "Start a local coding session"),
-              e("p", null, "Ask Sally to inspect the project, edit files, run tests, or explain how the codebase works. The terminal and browser share the same local session."),
-              e("div", { className: "suggestions" },
-                suggestions.map(function (item) {
-                  return e("button", {
-                    key: item,
-                    type: "button",
-                    className: "suggestion",
-                    onClick: function () {
-                      setInput(item)
-                      if (inputRef.current) inputRef.current.focus()
-                    }
-                  }, item)
-                })
-              )
+              e("h2", null, "What should Sally build today?"),
+              e("div", { className: "suggestions" }, suggestions.map(function (item) {
+                return e("button", { key: item, type: "button", className: "suggestion", onClick: function () { setInput(item); if (inputRef.current) inputRef.current.focus() } }, item)
+              }))
             )
           }
 
@@ -1135,7 +1225,7 @@ function sallyUiHtml() {
             var info = message.info || {}
             var role = info.role || "assistant"
             var metaTime = info.time && (info.time.created || info.time.completed)
-            var activities = activityParts(message)
+            var activityParts = (message.parts || []).filter(function (part) { return part.type && part.type !== "text" && part.type !== "reasoning" })
             return e("article", { key: info.id || Math.random(), className: cx("message", role) },
               e("div", { className: "message-meta" },
                 e("span", null, role),
@@ -1143,160 +1233,128 @@ function sallyUiHtml() {
                 info.modelID ? e("span", null, info.providerID + " / " + info.modelID) : null,
                 e("span", null, formatTime(metaTime))
               ),
-              e("div", { className: "bubble" },
-                e(Markdown, { text: mainMessageText(message) }),
-                activities.length ? e("div", { className: "part-list" },
-                  activities.map(function (part, index) {
-                    return e("div", { className: "part", key: (part.id || index) }, partLabel(part))
-                  })
-                ) : null
-              )
+              e("div", { className: "bubble" }, e(Markdown, { text: mainMessageText(message) })),
+              activityParts.length && role !== "user" ? e("div", { className: "activity-card" },
+                e("div", { className: "activity-title" }, "Live trace", e("span", { className: "mini" }, activityParts.length + " event" + (activityParts.length === 1 ? "" : "s"))),
+                activityParts.slice(-5).map(function (part, index) {
+                  return e("div", { className: "activity-row", key: (part.id || index) }, e("span", null, "step"), e("span", null, activityLabel(part)))
+                })
+              ) : null
             )
           })
         }
 
-        function renderChanges() {
-          if (!changes.length) {
-            return e("div", { className: "change" },
-              e("strong", null, "No file changes yet"),
-              e("small", null, "Edits will appear here as Sally works.")
+        function renderHistory() {
+          if (!sessions.length) return e("p", { style: { color: "var(--muted)" } }, "No sessions yet.")
+          return e("div", { className: "session-list" }, sessions.map(function (session) {
+            var statusText = statusOf(status, session.id)
+            return e("button", {
+              key: session.id,
+              type: "button",
+              className: cx("session", session.id === activeSessionID && "active"),
+              onClick: function () { setActiveSessionID(session.id); setHistoryOpen(false) }
+            }, e("strong", null, sessionTitle(session)), e("small", null, statusText + " - " + formatTime(session.time && session.time.updated)))
+          }))
+        }
+
+        function renderActivityDrawer() {
+          return e(React.Fragment, null,
+            e(Panel, { title: "Live stream", meta: activeStatus },
+              activities.slice(0, 20).map(function (item, index) {
+                return e("div", { className: "activity-row", key: item.time + "-" + index },
+                  e("span", null, item.kind),
+                  e("span", null, item.text + " - " + formatTime(item.time))
+                )
+              })
+            ),
+            e(Panel, { title: "Changed files", meta: String(changes.length) }, renderChanges()),
+            e(Panel, { title: "Todos", meta: String(todos.length) }, renderTodos())
+          )
+        }
+
+        function renderSettings() {
+          return e(React.Fragment, null,
+            e(Panel, { title: "Model", meta: selectedProviderID || "default" },
+              e("div", { className: "field" }, e("label", null, "Provider"), e("select", { value: selectedProviderID, onChange: onProviderChange }, providers.map(function (provider) {
+                return e("option", { key: provider.id, value: provider.id }, provider.name || provider.id)
+              }))),
+              e("div", { className: "field" }, e("label", null, "Model"), e("select", { value: selectedModelID, onChange: onModelChange }, models.map(function (model) {
+                return e("option", { key: model.id, value: model.id }, model.name || model.id)
+              }))),
+              variants.length ? e("div", { className: "field" }, e("label", null, "Variant"), e("select", { value: selectedVariant, onChange: function (event) { setSelectedVariant(event.target.value) } }, e("option", { value: "" }, "default"), variants.map(function (variant) {
+                return e("option", { key: variant, value: variant }, variant)
+              }))) : null,
+              e("div", { className: "field" }, e("label", null, "Agent"), e("select", { value: agent, onChange: function (event) { setAgent(event.target.value) } }, agents.map(function (item) {
+                return e("option", { key: item, value: item }, item)
+              })))
+            ),
+            e(Panel, { title: "Session", meta: activeSessionID ? "active" : "none" },
+              e("input", { className: "rename-input", value: renameValue, onInput: function (event) { setRenameValue(event.target.value) }, placeholder: "Session title" }),
+              e("div", { className: "row" },
+                e("button", { className: "button", type: "button", disabled: !activeSessionID, onClick: function () { renameSession().catch(function (err) { setError(err.message || String(err)) }) } }, "Rename"),
+                e("button", { className: "button", type: "button", disabled: !activeSessionID, onClick: function () { selectTerminalSession(activeSessionID) } }, "Show in terminal"),
+                e("button", { className: "button", type: "button", disabled: !activeSessionID || activeStatus === "idle", onClick: function () { abortSession().catch(function (err) { setError(err.message || String(err)) }) } }, "Abort"),
+                e("button", { className: "button danger", type: "button", disabled: !activeSessionID, onClick: function () { deleteSession().catch(function (err) { setError(err.message || String(err)) }) } }, "Delete")
+              )
+            ),
+            e(Panel, { title: "Workspace", meta: initialDirectory ? "local" : "default" },
+              e("div", { className: "kv" }, e("span", null, "Directory"), e("strong", null, initialDirectory || activeSession && activeSession.directory || "default")),
+              e("div", { className: "kv" }, e("span", null, "Session"), e("strong", null, activeSessionID || "none")),
+              e("div", { className: "kv" }, e("span", null, "Messages"), e("strong", null, String(messages.length))),
+              e("div", { className: "kv" }, e("span", null, "Changes"), e("strong", null, String(changes.length)))
             )
-          }
+          )
+        }
+
+        function renderChanges() {
+          if (!changes.length) return e("div", { className: "change" }, e("strong", null, "No file changes yet"))
           return changes.map(function (change, index) {
             var statusText = change.status || "modified"
-            return e("div", { className: "change", key: (change.file || "file") + index },
-              e("strong", null, change.file || "workspace"),
-              e("small", null,
-                e("span", { className: "status-" + statusText }, statusText),
-                " - +" + (change.additions || 0) + " / -" + (change.deletions || 0)
-              )
-            )
+            return e("div", { className: "change", key: (change.file || "file") + index }, e("strong", null, change.file || "workspace"), e("small", null, e("span", { className: "status-" + statusText }, statusText), " - +" + (change.additions || 0) + " / -" + (change.deletions || 0)))
           })
         }
 
         function renderTodos() {
-          if (!todos.length) {
-            return e("div", { className: "todo" },
-              e("strong", null, "No todos yet"),
-              e("small", null, "Task planning will appear here when the agent creates it.")
-            )
-          }
+          if (!todos.length) return e("div", { className: "todo" }, e("strong", null, "No todos yet"))
           return todos.map(function (todo, index) {
-            return e("div", { className: "todo", key: todo.content + index },
-              e("strong", null, todo.content || "Task"),
-              e("small", null, (todo.status || "pending") + " - " + (todo.priority || "medium"))
-            )
+            return e("div", { className: "todo", key: todo.content + index }, e("strong", null, todo.content || "Task"), e("small", null, (todo.status || "pending") + " - " + (todo.priority || "medium")))
           })
         }
 
-        function renderWorkspace() {
-          return [
-            e("div", { className: "kv", key: "dir" }, e("span", null, "Directory"), e("strong", null, initialDirectory || activeSession && activeSession.directory || "default")),
-            e("div", { className: "kv", key: "session" }, e("span", null, "Session"), e("strong", null, activeSessionID || "none")),
-            e("div", { className: "kv", key: "messages" }, e("span", null, "Messages"), e("strong", null, String(messages.length))),
-            e("div", { className: "kv", key: "model" }, e("span", null, "Selected model"), e("strong", null, selectedProviderID && selectedModelID ? selectedProviderID + " / " + selectedModelID : "default"))
-          ]
-        }
-
         return e("main", { className: "app" },
-          e("aside", { className: "sidebar" },
-            e("div", { className: "brand" },
-              e("div", { className: "mark" }, "SC"),
-              e("div", null, e("h1", null, "Sally Code"), e("p", null, "React local workspace"))
-            ),
-            e("div", { className: "sidebar-actions" },
-              e("button", { type: "button", className: "button primary", onClick: function () { createSession().catch(function (err) { setError(err.message || String(err)) }) } }, "New session"),
-              e("button", { type: "button", className: "button", onClick: function () { refreshAll(false) } }, loading ? "Loading" : "Refresh")
-            ),
-            e("p", { className: "section-label" }, e("span", null, "Sessions"), e("span", null, String(sessions.length))),
-            e("div", { className: "session-list" }, renderSessions())
+          e("header", { className: "topbar" },
+            e("div", { className: "brand" }, e("div", { className: "mark" }, "SC"), e("div", null, e("h1", null, "Sally Code"), e("p", null, activeSessionID ? "Local coding session" : "Coding assistant"))),
+            e("nav", { className: "nav-pill" }, e("button", { className: "active", type: "button" }, "Sally"), e("button", { type: "button", onClick: function () { setActivityOpen(true) } }, "Activity"), e("button", { type: "button", onClick: function () { setSettingsOpen(true) } }, "Settings")),
+            e("div", { className: "top-actions" },
+              e("button", { className: "button", type: "button", onClick: function () { setHistoryOpen(true) } }, "History"),
+              e("button", { className: "button model-summary", type: "button", onClick: function () { setSettingsOpen(true) } }, selectedModel ? (selectedProviderID + " / " + selectedModel.id) : "Model"),
+              e("button", { className: "button primary", type: "button", onClick: function () { createSession().catch(function (err) { setError(err.message || String(err)) }) } }, "New Chat"),
+              e("div", { className: "status-pill" }, e("span", { className: cx("dot", activeStatus !== "idle" && "busy") }), e("span", null, activeStatus === "idle" ? "ready" : activeStatus))
+            )
           ),
           e("section", { className: "main" },
-            e("div", { className: "topbar" },
-              e("div", { className: "top-title" },
-                e("h2", null, sessionTitle(activeSession)),
-                e("small", null, activeSession ? (activeSession.directory || initialDirectory || "local workspace") + " - " + activeSession.id : "No active session")
-              ),
-              e("div", { className: "top-controls" },
-                e("div", { className: "field" },
-                  e("label", null, "Provider"),
-                  e("select", { value: selectedProviderID, onChange: onProviderChange },
-                    providers.map(function (provider) {
-                      return e("option", { key: provider.id, value: provider.id }, provider.name || provider.id)
-                    })
+            e("div", { className: "chat-shell" },
+              e("div", { className: "messages" }, renderMessages(), e("div", { ref: messageEndRef })),
+              e("div", { className: "composer-wrap" },
+                error ? e("div", { className: "error" }, error) : null,
+                e("div", { className: "composer" },
+                  e("button", { className: cx("live-strip", (latestActivity || activeStatus !== "idle") && "visible"), type: "button", onClick: function () { setActivityOpen(true) } },
+                    e("span", null, e("strong", null, activeStatus === "idle" ? "Live activity" : "Sally is working"), " - " + (latestActivity ? latestActivity.text : "Waiting for updates")),
+                    e("span", null, lastSync ? "synced " + lastSync : "open")
+                  ),
+                  e("form", { onSubmit: function (event) { event.preventDefault(); sendPrompt(input) } },
+                    e("div", { className: "composer-box" },
+                      e("textarea", { ref: inputRef, value: input, onInput: onInput, onKeyDown: onPromptKeyDown, placeholder: "Message Sally Code..." }),
+                      e("button", { className: "send-button", type: "submit", disabled: sending || !input.trim(), title: "Send" }, sending ? "..." : "Send")
+                    )
                   )
-                ),
-                e("div", { className: "field" },
-                  e("label", null, "Model"),
-                  e("select", { value: selectedModelID, onChange: onModelChange },
-                    models.map(function (model) {
-                      return e("option", { key: model.id, value: model.id }, model.name || model.id)
-                    })
-                  )
-                ),
-                variants.length ? e("div", { className: "field" },
-                  e("label", null, "Variant"),
-                  e("select", { value: selectedVariant, onChange: function (event) { setSelectedVariant(event.target.value) } },
-                    e("option", { value: "" }, "default"),
-                    variants.map(function (variant) {
-                      return e("option", { key: variant, value: variant }, variant)
-                    })
-                  )
-                ) : null,
-                e("div", { className: "field" },
-                  e("label", null, "Agent"),
-                  e("select", { value: agent, onChange: function (event) { setAgent(event.target.value) } },
-                    agents.map(function (item) {
-                      return e("option", { key: item, value: item }, item)
-                    })
-                  )
-                ),
-                e("div", { className: "status-pill" },
-                  e("span", { className: cx("dot", activeStatus !== "idle" && "busy") }),
-                  e("span", null, activeStatus === "idle" ? "ready" : activeStatus)
                 )
-              )
-            ),
-            e("div", { className: cx("error", error && "visible") }, error),
-            e("div", { className: "messages" },
-              renderMessages(),
-              e("div", { ref: messageEndRef })
-            ),
-            e("div", { className: "composer" },
-              e("form", { onSubmit: function (event) { event.preventDefault(); sendPrompt(input) } },
-                e("textarea", {
-                  ref: inputRef,
-                  value: input,
-                  onInput: onInput,
-                  onKeyDown: onPromptKeyDown,
-                  placeholder: "Ask Sally Code to edit, explain, test, or review this project"
-                }),
-                e("button", { type: "submit", className: "button primary", disabled: sending || !input.trim() }, sending ? "Sending" : "Send")
               )
             )
           ),
-          e("aside", { className: "inspector" },
-            e("div", { className: "brand" },
-              e("div", { className: "mark" }, "LV"),
-              e("div", null, e("h1", null, "Live view"), e("p", null, lastSync ? "Synced " + lastSync : "Waiting for sync"))
-            ),
-            e("div", { className: "inspector-scroll" },
-              e(Panel, { title: "Session control", meta: activeStatus },
-                e("div", { className: "rename-row" },
-                  e("input", { className: "rename-input", value: renameValue, onInput: function (event) { setRenameValue(event.target.value) } }),
-                  e("button", { className: "button", type: "button", disabled: !activeSessionID, onClick: function () { renameSession().catch(function (err) { setError(err.message || String(err)) }) } }, "Rename")
-                ),
-                e("div", { className: "session-actions" },
-                  e("button", { className: "button", type: "button", disabled: !activeSessionID, onClick: function () { selectTerminalSession(activeSessionID) } }, "Show in terminal"),
-                  e("button", { className: "button", type: "button", disabled: !activeSessionID || activeStatus === "idle", onClick: function () { abortSession().catch(function (err) { setError(err.message || String(err)) }) } }, "Abort"),
-                  e("button", { className: "button danger", type: "button", disabled: !activeSessionID, onClick: function () { deleteSession().catch(function (err) { setError(err.message || String(err)) }) } }, "Delete")
-                )
-              ),
-              e(Panel, { title: "Workspace", meta: initialDirectory ? "local" : "default" }, renderWorkspace()),
-              e(Panel, { title: "Changed files", meta: String(changes.length) }, renderChanges()),
-              e(Panel, { title: "Todos", meta: String(todos.length) }, renderTodos())
-            )
-          )
+          e(Drawer, { open: historyOpen, side: "left", title: "History", subtitle: sessions.length + " local sessions", onClose: function () { setHistoryOpen(false) } }, renderHistory()),
+          e(Drawer, { open: settingsOpen, title: "Settings", subtitle: "Session and model", onClose: function () { setSettingsOpen(false) } }, renderSettings()),
+          e(Drawer, { open: activityOpen, title: "Live activity", subtitle: activeStatus, onClose: function () { setActivityOpen(false) } }, renderActivityDrawer())
         )
       }
 
