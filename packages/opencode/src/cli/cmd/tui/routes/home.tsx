@@ -1,6 +1,6 @@
 import { Prompt, type PromptRef } from "@tui/component/prompt"
 import { TextAttributes } from "@opentui/core"
-import { For, createEffect, createMemo, createSignal, onMount } from "solid-js"
+import { createEffect, createMemo, createSignal, onMount } from "solid-js"
 import open from "open"
 import { TuiPluginRuntime } from "@/cli/cmd/tui/plugin/runtime"
 import { errorMessage } from "@/util/error"
@@ -94,14 +94,13 @@ function SuggestionRow(props: { onPick: (prompt: string) => void; opening: boole
         <text fg={tint(theme.textMuted, theme.background, 0.3)} wrapMode="none">
           try
         </text>
-        <For each={SUGGESTIONS}>
-          {(item, index) => (
-            <>
-              {index() > 0 ? <Separator /> : null}
-              <InlineSuggestion label={item.label} prompt={item.prompt} onPick={props.onPick} />
-            </>
-          )}
-        </For>
+        <InlineSuggestion label={SUGGESTIONS[0].label} prompt={SUGGESTIONS[0].prompt} onPick={props.onPick} />
+        <Separator />
+        <InlineSuggestion label={SUGGESTIONS[1].label} prompt={SUGGESTIONS[1].prompt} onPick={props.onPick} />
+        <Separator />
+        <InlineSuggestion label={SUGGESTIONS[2].label} prompt={SUGGESTIONS[2].prompt} onPick={props.onPick} />
+        <Separator />
+        <InlineSuggestion label={SUGGESTIONS[3].label} prompt={SUGGESTIONS[3].prompt} onPick={props.onPick} />
       </box>
       <InlineWebAction opening={props.opening} onOpen={props.onOpen} />
     </box>

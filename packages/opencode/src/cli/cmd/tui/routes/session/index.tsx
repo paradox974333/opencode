@@ -1403,19 +1403,16 @@ function UserMessage(props: {
               setHover(false)
             }}
             onMouseUp={props.onMouseUp}
-            border={["left"]}
-            borderColor={color()}
-            customBorderChars={SplitBorder.customBorderChars}
             flexShrink={0}
             maxWidth={maxWidth()}
           >
             <box paddingTop={1} paddingBottom={1} paddingLeft={2} paddingRight={2} backgroundColor={bubbleBg()} gap={1}>
               <box flexDirection="row" justifyContent="space-between" gap={2}>
-                <box flexDirection="row" gap={1} flexShrink={1}>
-                  <text fg={color()}>
-                    <b>You</b>
+                <box flexDirection="row" gap={1} flexShrink={1} alignItems="center">
+                  <text fg={color()}>{"●"}</text>
+                  <text fg={color()} attributes={TextAttributes.BOLD} wrapMode="none">
+                    You
                   </text>
-                  <text fg={theme.textMuted}>prompt</text>
                 </box>
                 <Show
                   when={queued()}
@@ -1659,16 +1656,14 @@ function ReasoningPart(props: { last: boolean; part: ReasoningPart; message: Ass
         paddingBottom={1}
         marginTop={1}
         flexDirection="column"
-        border={["left"]}
-        customBorderChars={SplitBorder.customBorderChars}
-        borderColor={tint(theme.borderSubtle, theme.warning, 0.16)}
-        backgroundColor={tint(theme.backgroundPanel, theme.backgroundElement, 0.28)}
         maxWidth={maxWidth()}
         gap={1}
       >
-        <box flexDirection="row" gap={1}>
-          <text fg={theme.warning}>Thinking</text>
-          <text fg={theme.textMuted}>reasoning</text>
+        <box flexDirection="row" gap={1} alignItems="center">
+          <text fg={theme.warning}>{"◇"}</text>
+          <text fg={theme.warning} attributes={TextAttributes.BOLD} wrapMode="none">
+            Thinking
+          </text>
         </box>
         <code
           filetype="markdown"
@@ -1690,28 +1685,23 @@ function TextPart(props: { last: boolean; part: TextPart; message: AssistantMess
   const { theme, syntax } = useTheme()
   const accent = createMemo(() => local.agent.color(props.message.agent))
   const maxWidth = createMemo(() => Math.max(32, Math.min(108, ctx.width - 2)))
-  const background = createMemo(() => tint(theme.backgroundPanel, accent(), 0.035))
   return (
     <Show when={props.part.text.trim()}>
       <box
         id={"text-" + props.part.id}
-        border={["left"]}
-        customBorderChars={SplitBorder.customBorderChars}
-        borderColor={accent()}
         paddingLeft={2}
         paddingRight={2}
         paddingTop={1}
         paddingBottom={1}
         marginTop={1}
         flexShrink={0}
-        backgroundColor={background()}
         maxWidth={maxWidth()}
       >
-        <box flexDirection="row" gap={1} paddingBottom={1}>
-          <text fg={accent()}>
-            <b>{Locale.titlecase(props.message.agent)}</b>
+        <box flexDirection="row" gap={1} paddingBottom={1} alignItems="center">
+          <text fg={accent()}>{"●"}</text>
+          <text fg={accent()} attributes={TextAttributes.BOLD} wrapMode="none">
+            {Locale.titlecase(props.message.agent)}
           </text>
-          <text fg={theme.textMuted}>response</text>
         </box>
         <Switch>
           <Match when={Flag.OPENCODE_EXPERIMENTAL_MARKDOWN}>

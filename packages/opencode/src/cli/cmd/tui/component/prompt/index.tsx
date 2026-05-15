@@ -1535,20 +1535,13 @@ export function Prompt(props: PromptProps) {
     <>
       <box ref={(r: BoxRenderable) => (anchor = r)} visible={props.visible !== false}>
         <box
-          border={dockVariant() ? (["left"] as const) : PanelBorder.border}
+          border={PanelBorder.border}
           borderColor={homeVariant() ? homeAccent() : borderHighlight()}
-          customBorderChars={
-            dockVariant()
-              ? {
-                  ...PanelBorder.customBorderChars,
-                  vertical: "\u258c",
-                }
-              : PanelBorder.customBorderChars
-          }
+          customBorderChars={PanelBorder.customBorderChars}
           backgroundColor={dockVariant() ? homeSurface() : undefined}
         >
           <box
-            paddingLeft={dockVariant() ? 3 : 2}
+            paddingLeft={2}
             paddingRight={2}
             paddingTop={1}
             paddingBottom={1}
@@ -1556,69 +1549,67 @@ export function Prompt(props: PromptProps) {
             backgroundColor={dockVariant() ? homeSurface() : promptBackground()}
             flexGrow={1}
           >
-            <box flexDirection="row" flexShrink={0} justifyContent="space-between" paddingBottom={1} gap={2}>
-              <box flexDirection="row" gap={1} flexShrink={1}>
-                <text fg={homeVariant() ? homeAccent() : borderHighlight()}>{dockVariant() ? "\u25b8" : "\u25cf"}</text>
-                <Show when={local.agent.current()} fallback={<text fg={theme.text}>Sally Code</text>}>
-                  {(agent) => (
-                    <box flexDirection="row" gap={1} flexShrink={1}>
-                      <text fg={fadeColor(highlight(), agentMetaAlpha())} wrapMode="none">
-                        {store.mode === "shell" ? "Shell" : Locale.titlecase(agent().name)}
-                      </text>
-                      <Show when={store.mode === "normal"}>
-                        <text fg={theme.textMuted}>/</text>
-                        <text
-                          flexShrink={1}
-                          fg={fadeColor(leader() ? theme.textMuted : theme.text, modelMetaAlpha())}
-                          wrapMode="none"
-                          truncate
-                        >
-                          {homeModelLabel()}
+            <Show when={!homeVariant()}>
+              <box flexDirection="row" flexShrink={0} justifyContent="space-between" paddingBottom={1} gap={2}>
+                <box flexDirection="row" gap={1} flexShrink={1}>
+                  <text fg={borderHighlight()}>{"\u25cf"}</text>
+                  <Show when={local.agent.current()} fallback={<text fg={theme.text}>Sally Code</text>}>
+                    {(agent) => (
+                      <box flexDirection="row" gap={1} flexShrink={1}>
+                        <text fg={fadeColor(highlight(), agentMetaAlpha())} wrapMode="none">
+                          {store.mode === "shell" ? "Shell" : Locale.titlecase(agent().name)}
                         </text>
-                        <text fg={fadeColor(theme.textMuted, modelMetaAlpha())} wrapMode="none" truncate>
-                          {homeProviderLabel()}
-                        </text>
-                        <Show when={showVariant()}>
-                          <text fg={fadeColor(theme.textMuted, variantMetaAlpha())}>{"\u00b7"}</text>
-                          <text fg={fadeColor(theme.warning, variantMetaAlpha())} wrapMode="none" truncate>
-                            {local.model.variant.current()}
+                        <Show when={store.mode === "normal"}>
+                          <text fg={theme.textMuted}>/</text>
+                          <text
+                            flexShrink={1}
+                            fg={fadeColor(leader() ? theme.textMuted : theme.text, modelMetaAlpha())}
+                            wrapMode="none"
+                            truncate
+                          >
+                            {homeModelLabel()}
                           </text>
+                          <text fg={fadeColor(theme.textMuted, modelMetaAlpha())} wrapMode="none" truncate>
+                            {homeProviderLabel()}
+                          </text>
+                          <Show when={showVariant()}>
+                            <text fg={fadeColor(theme.textMuted, variantMetaAlpha())}>{"\u00b7"}</text>
+                            <text fg={fadeColor(theme.warning, variantMetaAlpha())} wrapMode="none" truncate>
+                              {local.model.variant.current()}
+                            </text>
+                          </Show>
                         </Show>
-                      </Show>
-                    </box>
-                  )}
-                </Show>
+                      </box>
+                    )}
+                  </Show>
+                </box>
+                <box flexDirection="row" gap={1} flexShrink={0}>
+                  <Switch>
+                    <Match when={hasRightContent()}>
+                      <box flexDirection="row" gap={1} alignItems="center">
+                        {props.right}
+                      </box>
+                      <text fg={homeAccent()}>{homeActivityLabel()}</text>
+                    </Match>
+                    <Match when={true}>
+                      <text fg={homeAccent()}>{homeActivityLabel()}</text>
+                    </Match>
+                  </Switch>
+                </box>
               </box>
-              <box flexDirection="row" gap={1} flexShrink={0}>
-                <Switch>
-                  <Match when={homeVariant()}>
-                    <text fg={theme.textMuted}>composer</text>
-                    <text fg={homeAccent()}>{homeActivityLabel()}</text>
-                  </Match>
-                  <Match when={hasRightContent()}>
-                    <box flexDirection="row" gap={1} alignItems="center">
-                      {props.right}
-                    </box>
-                    <text fg={homeAccent()}>{homeActivityLabel()}</text>
-                  </Match>
-                  <Match when={true}>
-                    <text fg={homeAccent()}>{homeActivityLabel()}</text>
-                  </Match>
-                </Switch>
-              </box>
-            </box>
+            </Show>
             <box
               flexDirection="row"
               gap={1}
-              paddingLeft={dockVariant() ? 1 : 0}
-              paddingRight={dockVariant() ? 1 : 0}
-              paddingTop={dockVariant() ? 1 : 0}
-              paddingBottom={dockVariant() ? 1 : 0}
+              paddingLeft={0}
+              paddingRight={0}
+              paddingTop={homeVariant() ? 0 : dockVariant() ? 1 : 0}
+              paddingBottom={homeVariant() ? 0 : dockVariant() ? 1 : 0}
               backgroundColor={dockVariant() ? promptBackground() : undefined}
             >
-              <Show when={dockVariant()}>
+              <Show when={dockVariant() && !homeVariant()}>
                 <box flexShrink={0} paddingRight={1}>
-                  <text fg={homeVariant() ? homeAccent() : borderHighlight()}>
+                  <text fg={borderHighlight()}>
                     {store.mode === "shell" ? "$" : ">"}
                   </text>
                 </box>
@@ -1693,6 +1684,43 @@ export function Prompt(props: PromptProps) {
                 syntaxStyle={syntax()}
               />
             </box>
+            <Show when={homeVariant()}>
+              <box
+                flexDirection="row"
+                justifyContent="space-between"
+                alignItems="center"
+                gap={2}
+                paddingTop={1}
+                flexShrink={0}
+              >
+                <box flexDirection="row" gap={1} flexShrink={1} alignItems="center">
+                  <text fg={homeAccent()}>{"●"}</text>
+                  <Show when={local.agent.current()} fallback={<text fg={theme.textMuted}>Sally Code</text>}>
+                    {(agent) => (
+                      <box flexDirection="row" gap={1} alignItems="center" flexShrink={1}>
+                        <text fg={fadeColor(highlight(), agentMetaAlpha())} wrapMode="none">
+                          {store.mode === "shell" ? "Shell" : Locale.titlecase(agent().name)}
+                        </text>
+                        <Show when={store.mode === "normal" && local.model.current()}>
+                          <text fg={tint(theme.textMuted, theme.background, 0.4)}>{"·"}</text>
+                          <text
+                            flexShrink={1}
+                            fg={fadeColor(theme.textMuted, modelMetaAlpha())}
+                            wrapMode="none"
+                            truncate
+                          >
+                            {homeModelLabel()}
+                          </text>
+                        </Show>
+                      </box>
+                    )}
+                  </Show>
+                </box>
+                <text fg={homeAccent()} wrapMode="none">
+                  {homeActivityLabel()}
+                </text>
+              </box>
+            </Show>
           </box>
         </box>
         <box
