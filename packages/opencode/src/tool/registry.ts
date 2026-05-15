@@ -2,6 +2,9 @@ import { PlanExitTool } from "./plan"
 import { Session } from "@/session/session"
 import { QuestionTool } from "./question"
 import { ShellTool } from "./shell"
+import { BashBackgroundTool } from "./bash_background"
+import { BashOutputTool } from "./bash_output"
+import { BashKillTool } from "./bash_kill"
 import { EditTool } from "./edit"
 import { GlobTool } from "./glob"
 import { GrepTool } from "./grep"
@@ -121,6 +124,9 @@ export const layer: Layer.Layer<
     const repoClone = yield* RepoCloneTool
     const repoOverview = yield* RepoOverviewTool
     const shell = yield* ShellTool
+    const bashBackground = yield* BashBackgroundTool
+    const bashOutput = yield* BashOutputTool
+    const bashKill = yield* BashKillTool
     const globtool = yield* GlobTool
     const writetool = yield* WriteTool
     const edit = yield* EditTool
@@ -213,6 +219,9 @@ export const layer: Layer.Layer<
         const tool = yield* Effect.all({
           invalid: Tool.init(invalid),
           shell: Tool.init(shell),
+          bash_background: Tool.init(bashBackground),
+          bash_output: Tool.init(bashOutput),
+          bash_kill: Tool.init(bashKill),
           read: Tool.init(read),
           glob: Tool.init(globtool),
           grep: Tool.init(greptool),
@@ -237,6 +246,9 @@ export const layer: Layer.Layer<
             tool.invalid,
             ...(questionEnabled ? [tool.question] : []),
             tool.shell,
+            tool.bash_background,
+            tool.bash_output,
+            tool.bash_kill,
             tool.read,
             tool.glob,
             tool.grep,

@@ -1,0 +1,16 @@
+Terminate a background task started with `bash_background`.
+
+Usage:
+- `taskID` (required): the id returned by `bash_background`.
+- `signal` (optional): one of `SIGTERM`, `SIGINT`, `SIGKILL`. Defaults to `SIGTERM`. Use `SIGKILL` only when `SIGTERM` doesn't work.
+
+The tool returns:
+- the task's status after the kill attempt (`killed`, `exited`, `error`, or `running` if the signal didn't take effect),
+- whether the signal was actually sent (`sent`),
+- the exit code if the process finished.
+
+Notes:
+- Returns an error if `taskID` is unknown.
+- If the task already exited, this is a no-op.
+- On Windows, `SIGKILL` is the only signal that reliably terminates a process; others may be ignored by the shell.
+- Buffered output is preserved after a kill; you can still call `bash_output` to fetch the last lines.

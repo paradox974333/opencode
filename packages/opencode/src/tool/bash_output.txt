@@ -1,0 +1,18 @@
+Read the buffered stdout/stderr of a background task started with `bash_background`.
+
+Usage:
+- `taskID` (required): the id returned by `bash_background`.
+- `sinceLine` (optional): only return lines whose line-number is at or after this value. Use the `toLine` returned by your previous call to read only new output on the next poll. Defaults to 0 (start of buffer).
+- `maxLines` (optional): cap on returned lines. Defaults to 500, max 2000.
+
+The tool returns:
+- the task's current status (`running`, `exited`, `killed`, `error`),
+- exit code (once exited),
+- the requested slice of buffered lines with their absolute line numbers,
+- `toLine` — the next `sinceLine` to use for incremental polling,
+- `droppedLines` — count of lines that fell out of the 5000-line ring buffer before you could read them.
+
+Notes:
+- Buffer holds the LAST 5000 lines. Older lines are silently discarded.
+- The task continues running while you read. Multiple `bash_output` calls are safe.
+- Returns an error if `taskID` is unknown.

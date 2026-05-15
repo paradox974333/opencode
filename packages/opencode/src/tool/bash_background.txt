@@ -1,0 +1,22 @@
+Start a shell command running in the background and return a task id immediately, without waiting for it to finish.
+
+Use this for commands you don't want to block on:
+- Long-running dev servers (`npm run dev`, `bun run dev`, `cargo watch`)
+- Build/test watchers (`vitest --watch`, `jest --watch`, `tsc --watch`)
+- Long test suites you want to read incrementally
+- Anything you'd otherwise have to run with `&` in a normal shell
+
+Usage:
+- `command` (required): the shell command to run. Same shell as the regular Bash tool.
+- `description` (required): a 5-10 word description of what this command does. Shown in task lists and `bash_output` results.
+- `workdir` (optional): working directory. Defaults to the project root.
+
+The tool returns immediately with:
+- `taskID` — pass this to `bash_output` to read buffered stdout/stderr, or to `bash_kill` to terminate the process.
+- `status` — initial status (usually `running`).
+
+Notes:
+- Output is buffered up to 5000 lines per task; older lines drop off if the program is chatty.
+- Use `bash_output` with `sinceLine` to read only new lines on subsequent polls.
+- Background tasks are killed when Sally Code exits. They do NOT persist across sessions.
+- If you need synchronous output (e.g. `git status`), use the regular Bash tool instead.

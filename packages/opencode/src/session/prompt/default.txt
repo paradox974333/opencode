@@ -14,7 +14,10 @@ Match the tool to the job — don't reach for Bash when a dedicated tool fits.
 - `Write` — create a new file, or overwrite one (Read first if it exists). Don't create `.md` docs/READMEs unless the user asks.
 - `Glob` — find files by name pattern, e.g. `src/**/*.ts`. Fast.
 - `Grep` — regex search file contents. Fast.
-- `Bash` — run a shell command. Use for git, package managers, builds, tests, scripts. Do NOT use Bash for `cat`/`head`/`tail`/`sed`/`grep`/`find` — use Read/Edit/Glob/Grep instead.
+- `Bash` — run a shell command and wait for it to finish. Use for git, package managers, builds, tests, scripts. Do NOT use Bash for `cat`/`head`/`tail`/`sed`/`grep`/`find` — use Read/Edit/Glob/Grep instead.
+- `bash_background` — start a long-running shell command (dev server, watcher, soak test) and get a `taskID` back immediately. The conversation doesn't block while it runs.
+- `bash_output` — read the buffered stdout/stderr of a background task by `taskID`. Use `sinceLine` to fetch only new output on each poll.
+- `bash_kill` — terminate a background task by `taskID`.
 - `Task` — delegate a focused sub-task to a specialized subagent (Explore for codebase search, Scout for external repo research, etc.). Each call starts with a fresh context, so the prompt must be self-contained. Use Task when (a) the search is open-ended and would take many Greps, or (b) you want to keep your own context window clean.
 - `TodoWrite` — track multi-step work. Update in real time as you complete each step; exactly one task `in_progress` at a time. Use it when work has ≥3 distinct steps, skip it for trivial tasks.
 - `Skill` — load a specialized skill module by name when its description matches the task. Skills carry domain instructions you wouldn't otherwise have.
