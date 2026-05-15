@@ -6,16 +6,15 @@ import { TuiPluginRuntime } from "@/cli/cmd/tui/plugin/runtime"
 import { errorMessage } from "@/util/error"
 import { useEditorContext } from "@tui/context/editor"
 import { tint, useTheme } from "@tui/context/theme"
-import { PanelBorder } from "../component/border"
 import { HomeLogo } from "../component/logo"
 import { useArgs } from "../context/args"
-import { useLocal } from "../context/local"
 import { useProject } from "../context/project"
 import { useRoute } from "@tui/context/route"
 import { useRouteData } from "@tui/context/route"
 import { usePromptRef } from "../context/prompt"
 import { useSDK } from "../context/sdk"
 import { useSync } from "../context/sync"
+import { useLocal } from "../context/local"
 import { Toast, useToast } from "../ui/toast"
 
 let once = false
@@ -28,183 +27,57 @@ const placeholder = {
   shell: ["ls -la", "git status", "pwd"],
 }
 const HOME_WIDTH = 76
-const QUICK_STARTS = [
-  {
-    index: "01",
-    label: "Explain project",
-    hint: "Map structure",
-    prompt: "Explain how this codebase is organized and point me to the most important files.",
-  },
-  {
-    index: "02",
-    label: "Find bugs",
-    hint: "Scan risks",
-    prompt: "Review the current workspace for likely bugs, regressions, or missing tests.",
-  },
-  {
-    index: "03",
-    label: "Fix tests",
-    hint: "Repair suite",
-    prompt: "Run the relevant tests and fix any failures you find.",
-  },
-  {
-    index: "04",
-    label: "Polish UI",
-    hint: "Refine product",
-    prompt: "Make this interface more modern, readable, and user friendly.",
-  },
+const SUGGESTIONS = [
+  { label: "explain project", prompt: "Explain how this codebase is organized and point me to the most important files." },
+  { label: "find bugs", prompt: "Review the current workspace for likely bugs, regressions, or missing tests." },
+  { label: "fix tests", prompt: "Run the relevant tests and fix any failures you find." },
+  { label: "polish ui", prompt: "Make this interface more modern, readable, and user friendly." },
 ]
-const STATUS_WIDTH = 24
 
-function QuickStart(props: {
-  index: string
-  label: string
-  hint: string
-  prompt: string
-  onPick: (prompt: string) => void
-}) {
+function InlineSuggestion(props: { label: string; prompt: string; onPick: (prompt: string) => void }) {
   const { theme } = useTheme()
   const [hover, setHover] = createSignal(false)
-  const border = createMemo(() => (hover() ? theme.primary : tint(theme.borderSubtle, theme.primary, 0.18)))
-  const background = createMemo(() =>
-    hover()
-      ? tint(theme.backgroundElement, theme.primary, 0.12)
-      : tint(theme.backgroundPanel, theme.backgroundElement, 0.42),
-  )
-
   return (
-    <box
-      width={18}
-      flexDirection="column"
-      border={PanelBorder.border}
-      customBorderChars={PanelBorder.customBorderChars}
-      borderColor={border()}
-      backgroundColor={background()}
-      paddingLeft={1}
-      paddingRight={1}
-      paddingTop={1}
-      paddingBottom={1}
+    <text
+      fg={hover() ? theme.text : theme.textMuted}
+      attributes={hover() ? TextAttributes.BOLD : undefined}
+      wrapMode="none"
       onMouseOver={() => setHover(true)}
       onMouseOut={() => setHover(false)}
       onMouseUp={() => props.onPick(props.prompt)}
     >
-      <box flexDirection="row" gap={1}>
-        <text fg={hover() ? theme.primary : theme.textMuted}>{props.index}</text>
-        <text fg={theme.text} attributes={TextAttributes.BOLD} wrapMode="none" truncate>
-          {props.label}
-        </text>
-      </box>
-      <text fg={theme.textMuted} wrapMode="none" truncate>
-        {props.hint}
-      </text>
-    </box>
+      {props.label}
+    </text>
   )
 }
 
-function StatusChip(props: { label: string; value: string; active?: boolean }) {
+function Separator() {
   const { theme } = useTheme()
-  const background = createMemo(() =>
-    props.active
-      ? tint(theme.backgroundElement, theme.primary, 0.1)
-      : tint(theme.backgroundPanel, theme.backgroundElement, 0.35),
-  )
-
-  return (
-    <box
-      width={STATUS_WIDTH}
-      flexDirection="column"
-      border={PanelBorder.border}
-      customBorderChars={PanelBorder.customBorderChars}
-      borderColor={
-        props.active ? tint(theme.borderActive, theme.primary, 0.32) : tint(theme.borderSubtle, theme.primary, 0.12)
-      }
-      backgroundColor={background()}
-      paddingLeft={1}
-      paddingRight={1}
-    >
-      <text fg={theme.textMuted} wrapMode="none" truncate>
-        {props.label}
-      </text>
-      <text
-        fg={props.active ? theme.text : theme.textMuted}
-        attributes={props.active ? TextAttributes.BOLD : undefined}
-        wrapMode="none"
-        truncate
-      >
-        {props.value}
-      </text>
-    </box>
-  )
+  return <text fg={tint(theme.textMuted, theme.background, 0.4)}>·</text>
 }
 
-function HomeStatus(props: { agent: string; model: string; provider: string }) {
-  return (
-    <box width="100%" maxWidth={HOME_WIDTH} flexDirection="row" justifyContent="center" gap={1} paddingTop={1}>
-      <StatusChip label="agent" value={props.agent} active />
-      <StatusChip label="model" value={props.model} active={props.model !== "select model"} />
-      <StatusChip label="provider" value={props.provider} active={props.provider !== "connect"} />
-    </box>
-  )
-}
-
-function HomeBrief() {
-  const { theme } = useTheme()
-  return (
-    <box
-      width="100%"
-      maxWidth={HOME_WIDTH}
-      flexDirection="row"
-      justifyContent="space-between"
-      gap={2}
-      border={["left"]}
-      customBorderChars={PanelBorder.customBorderChars}
-      borderColor={theme.primary}
-      backgroundColor={tint(theme.backgroundPanel, theme.backgroundElement, 0.34)}
-      paddingLeft={2}
-      paddingRight={2}
-      paddingTop={1}
-      paddingBottom={1}
-      marginTop={1}
-    >
-      <box flexDirection="column" flexShrink={1}>
-        <text fg={theme.text} attributes={TextAttributes.BOLD}>
-          Sally workspace
-        </text>
-        <text fg={theme.textMuted} wrapMode="none" truncate>
-          Plan, edit, test, and open the browser workspace from one place.
-        </text>
-      </box>
-      <text fg={theme.success} wrapMode="none">
-        ready
-      </text>
-    </box>
-  )
-}
-
-function SectionLabel(props: { title: string; action?: string }) {
-  const { theme } = useTheme()
-  return (
-    <box width="100%" maxWidth={HOME_WIDTH} flexDirection="row" justifyContent="space-between" paddingTop={1}>
-      <text fg={theme.textMuted} attributes={TextAttributes.BOLD} wrapMode="none">
-        {props.title}
-      </text>
-      <text fg={theme.textMuted} wrapMode="none">
-        {props.action ?? ""}
-      </text>
-    </box>
-  )
-}
-
-function WebUIAction(props: { opening: boolean; onOpen: () => void }) {
+function InlineWebAction(props: { opening: boolean; onOpen: () => void }) {
   const { theme } = useTheme()
   const [hover, setHover] = createSignal(false)
-  const accent = createMemo(() => tint(theme.primary, theme.success, hover() ? 0.35 : 0.18))
-  const surface = createMemo(() =>
-    hover()
-      ? tint(theme.backgroundElement, theme.primary, 0.12)
-      : tint(theme.backgroundPanel, theme.backgroundElement, 0.44),
+  const accent = createMemo(() => (hover() ? theme.primary : theme.text))
+  return (
+    <box
+      flexDirection="row"
+      gap={1}
+      onMouseOver={() => setHover(true)}
+      onMouseOut={() => setHover(false)}
+      onMouseUp={() => props.onOpen()}
+    >
+      <text fg={accent()} attributes={TextAttributes.BOLD} wrapMode="none">
+        {props.opening ? "opening browser" : "open in browser"}
+      </text>
+      <text fg={accent()}>{"↗"}</text>
+    </box>
   )
+}
 
+function SuggestionRow(props: { onPick: (prompt: string) => void; opening: boolean; onOpen: () => void }) {
+  const { theme } = useTheme()
   return (
     <box
       width="100%"
@@ -213,57 +86,54 @@ function WebUIAction(props: { opening: boolean; onOpen: () => void }) {
       justifyContent="space-between"
       alignItems="center"
       gap={2}
-      border={PanelBorder.border}
-      customBorderChars={PanelBorder.customBorderChars}
-      borderColor={hover() ? accent() : tint(theme.borderSubtle, theme.primary, 0.22)}
-      backgroundColor={surface()}
+      paddingTop={1}
       paddingLeft={2}
       paddingRight={2}
-      paddingTop={1}
-      paddingBottom={1}
-      marginTop={1}
-      onMouseOver={() => setHover(true)}
-      onMouseOut={() => setHover(false)}
-      onMouseUp={() => props.onOpen()}
     >
-      <box gap={0} flexShrink={1}>
-        <box flexDirection="row" gap={1}>
-          <text fg={accent()} attributes={TextAttributes.BOLD}>
-            WEB
-          </text>
-          <text fg={theme.text} attributes={TextAttributes.BOLD}>
-            Browser workspace
-          </text>
-        </box>
-        <text fg={theme.textMuted} wrapMode="none" truncate>
-          Local chat, live changes, todos, and session history
+      <box flexDirection="row" gap={1} alignItems="center" flexShrink={1}>
+        <text fg={tint(theme.textMuted, theme.background, 0.3)} wrapMode="none">
+          try
         </text>
+        <For each={SUGGESTIONS}>
+          {(item, index) => (
+            <>
+              {index() > 0 ? <Separator /> : null}
+              <InlineSuggestion label={item.label} prompt={item.prompt} onPick={props.onPick} />
+            </>
+          )}
+        </For>
       </box>
-      <box
-        paddingLeft={1}
-        paddingRight={1}
-        backgroundColor={props.opening ? tint(theme.backgroundElement, theme.warning, 0.18) : accent()}
-      >
-        <text fg={props.opening ? theme.warning : theme.text} attributes={TextAttributes.BOLD}>
-          {props.opening ? "opening" : "open"}
-        </text>
-      </box>
+      <InlineWebAction opening={props.opening} onOpen={props.onOpen} />
     </box>
   )
 }
 
-function HomeQuickStarts(props: { onPick: (prompt: string) => void }) {
+function PromptHint() {
+  const { theme } = useTheme()
   return (
     <box
       width="100%"
       maxWidth={HOME_WIDTH}
       flexDirection="row"
       justifyContent="center"
-      flexWrap="wrap"
-      gap={1}
+      gap={2}
       paddingTop={1}
     >
-      <For each={QUICK_STARTS}>{(item) => <QuickStart {...item} onPick={props.onPick} />}</For>
+      <text fg={tint(theme.textMuted, theme.background, 0.3)} wrapMode="none">
+        enter to send
+      </text>
+      <text fg={tint(theme.textMuted, theme.background, 0.55)}>{"│"}</text>
+      <text fg={tint(theme.textMuted, theme.background, 0.3)} wrapMode="none">
+        shift + enter for newline
+      </text>
+      <text fg={tint(theme.textMuted, theme.background, 0.55)}>{"│"}</text>
+      <text fg={tint(theme.textMuted, theme.background, 0.3)} wrapMode="none">
+        tab agents
+      </text>
+      <text fg={tint(theme.textMuted, theme.background, 0.55)}>{"│"}</text>
+      <text fg={tint(theme.textMuted, theme.background, 0.3)} wrapMode="none">
+        ctrl+p commands
+      </text>
     </box>
   )
 }
@@ -282,10 +152,6 @@ export function Home() {
   const sdk = useSDK()
   const toast = useToast()
   let sent = false
-
-  const agentLabel = createMemo(() => local.agent.current()?.name ?? "build")
-  const modelLabel = createMemo(() => local.model.current()?.modelID ?? "select model")
-  const providerLabel = createMemo(() => local.model.current()?.providerID ?? "connect")
 
   onMount(() => {
     editor.clearSelection()
@@ -317,7 +183,7 @@ export function Home() {
     r.submit()
   })
 
-  const pickQuickStart = (prompt: string) => {
+  const pickSuggestion = (prompt: string) => {
     const r = ref()
     if (!r) return
     r.set({ input: prompt, parts: [] })
@@ -369,16 +235,12 @@ export function Home() {
     <>
       <box flexGrow={1} alignItems="center" paddingLeft={2} paddingRight={2}>
         <box flexGrow={1} minHeight={0} />
-        <box height={1} minHeight={0} flexShrink={1} />
         <box flexShrink={0}>
           <TuiPluginRuntime.Slot name="home_logo" mode="replace">
             <HomeLogo />
           </TuiPluginRuntime.Slot>
         </box>
-        <HomeStatus agent={agentLabel()} model={modelLabel()} provider={providerLabel()} />
-        <HomeBrief />
-        <SectionLabel title="Ask Sally" action="enter sends / shift+enter newline" />
-        <box width="100%" maxWidth={HOME_WIDTH} zIndex={1000} paddingTop={1} flexShrink={0}>
+        <box paddingTop={2} width="100%" maxWidth={HOME_WIDTH} zIndex={1000} flexShrink={0}>
           <TuiPluginRuntime.Slot
             name="home_prompt"
             mode="replace"
@@ -394,9 +256,8 @@ export function Home() {
             />
           </TuiPluginRuntime.Slot>
         </box>
-        <WebUIAction opening={openingWeb()} onOpen={openWebUI} />
-        <SectionLabel title="Quick starts" action="click any card" />
-        <HomeQuickStarts onPick={pickQuickStart} />
+        <SuggestionRow onPick={pickSuggestion} opening={openingWeb()} onOpen={openWebUI} />
+        <PromptHint />
         <TuiPluginRuntime.Slot name="home_bottom" />
         <box flexGrow={1} minHeight={0} />
         <Toast />
